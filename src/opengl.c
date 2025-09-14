@@ -50,7 +50,6 @@ void display() {
   glEnd();
   if (g_clicks.quantidade_atual >= 3) {
     glColor3f(0.0f, 1.0f, 0.0f); // Verde
-    glLineWidth(2.0f);
     glBegin(GL_LINE_LOOP); // Conecta todos os pontos e fecha automaticamente
     for (int i = 0; i < g_clicks.quantidade_atual; i++) {
       glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
@@ -76,7 +75,7 @@ void onMouse(int button, int state, int x, int y) {
     y = traduzCoordenadaY(y);
     pontos_push(&g_clicks, (float)x, (float)y);
 
-    // Debug dos pontos
+    // log no console dos pontos
     printf("Pontos atuais (%zu):\n", g_clicks.quantidade_atual);
     for (int i = 0; i < g_clicks.quantidade_atual; i++) {
       printf("  [%d] (%.1f, %.1f)\n", i, g_clicks.data[i].x,
