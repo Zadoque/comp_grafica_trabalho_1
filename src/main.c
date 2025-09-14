@@ -18,7 +18,8 @@ int main(int argc, char **argv) {
 
   // Inicializar estruturas de dados para os pontos
   pontos_init(&g_clicks, 20);
-  
+  // Inicializar menu
+  inicializar_menu();  
   // Inicializar OpenGL
   initGL();
   

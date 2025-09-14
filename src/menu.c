@@ -1,0 +1,92 @@
+#include "./../includes/menu.h"
+#include <string.h>
+#include <stdio.h>
+#include <GL/glut.h>
+
+// Implementar todas as funções do menu que te mostrei antes
+EstadoAplicacao estado_atual = MODO_CRIAR_PONTO;
+int menu_largura = 200;
+BotaoMenu botoes_menu[8];
+
+void inicializar_menu() {
+    // Definir os botões (posição relativa ao menu)
+    strcpy(botoes_menu[0].texto, "Criar Ponto");
+    botoes_menu[0].x = 10; botoes_menu[0].y = 50;
+    botoes_menu[0].largura = 180; botoes_menu[0].altura = 40;
+    botoes_menu[0].acao = MODO_CRIAR_PONTO;
+    
+    strcpy(botoes_menu[1].texto, "Selecionar");
+    botoes_menu[1].x = 10; botoes_menu[1].y = 100;
+    botoes_menu[1].largura = 180; botoes_menu[1].altura = 40;
+    botoes_menu[1].acao = MODO_SELECIONAR_PONTO;
+    
+    strcpy(botoes_menu[2].texto, "Polí Aberto");
+    botoes_menu[2].x = 10; botoes_menu[2].y = 150;
+    botoes_menu[2].largura = 180; botoes_menu[2].altura = 40;
+    botoes_menu[2].acao = MODO_POLIGONO_ABERTO;
+    
+    strcpy(botoes_menu[3].texto, "Polí Fechado");
+    botoes_menu[3].x = 10; botoes_menu[3].y = 200;
+    botoes_menu[3].largura = 180; botoes_menu[3].altura = 40;
+    botoes_menu[3].acao = MODO_POLIGONO_FECHADO;
+    
+    strcpy(botoes_menu[4].texto, "Hermite");
+    botoes_menu[4].x = 10; botoes_menu[4].y = 250;
+    botoes_menu[4].largura = 180; botoes_menu[4].altura = 40;
+    botoes_menu[4].acao = MODO_CURVA_HERMITE;
+    
+    strcpy(botoes_menu[5].texto, "Catmull-Rom");
+    botoes_menu[5].x = 10; botoes_menu[5].y = 300;
+    botoes_menu[5].largura = 180; botoes_menu[5].altura = 40;
+    botoes_menu[5].acao = MODO_CURVA_CATMULLROM;
+    
+    strcpy(botoes_menu[6].texto, "B-Spline");
+    botoes_menu[6].x = 10; botoes_menu[6].y = 350;
+    botoes_menu[6].largura = 180; botoes_menu[6].altura = 40;
+    botoes_menu[6].acao = MODO_CURVA_BSPLINE;
+    
+    strcpy(botoes_menu[7].texto, "Bezier");
+    botoes_menu[7].x = 10; botoes_menu[7].y = 400;
+    botoes_menu[7].largura = 180; botoes_menu[7].altura = 40;
+    botoes_menu[7].acao = MODO_CURVA_BEZIER;
+}
+
+void desenhar_botoes_menu() {
+    for (int i = 0; i < 8; i++) {
+        BotaoMenu *botao = &botoes_menu[i];
+        
+        // Cor do botão (ativo, destacado ou normal)
+        if (estado_atual == botao->acao) {
+            glColor3f(0.2f, 0.7f, 0.2f); // Verde se ativo
+        } else if (botao->destacado) {
+            glColor3f(0.9f, 0.9f, 0.7f); // Amarelo se mouse em cima
+        } else {
+            glColor3f(0.95f, 0.95f, 0.95f); // Cinza claro normal
+        }
+        
+        // Desenhar retângulo do botão
+        glBegin(GL_QUADS);
+            glVertex2f(botao->x, botao->y);
+            glVertex2f(botao->x + botao->largura, botao->y);
+            glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
+            glVertex2f(botao->x, botao->y + botao->altura);
+        glEnd();
+        
+        // Contorno do botão
+        glColor3f(0.0f, 0.0f, 0.0f);
+        glLineWidth(1.0f);
+        glBegin(GL_LINE_LOOP);
+            glVertex2f(botao->x, botao->y);
+            glVertex2f(botao->x + botao->largura, botao->y);
+            glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
+            glVertex2f(botao->x, botao->y + botao->altura);
+        glEnd();
+        
+        // Texto seria desenhado aqui (requer bitmap fonts)
+        // Por enquanto, use printf para debug
+        printf("Vamo bora que vai dar certo");
+    }
+}
+
+
+// ... outras funções
