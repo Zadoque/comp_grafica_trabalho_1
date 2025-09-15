@@ -1,6 +1,6 @@
 #include "./../includes/menu.h"
 #include <GL/glut.h>
-//#include <stdio.h>
+// #include <stdio.h>
 #include <string.h>
 
 // Implementar todas as funções do menu que te mostrei antes
@@ -75,7 +75,7 @@ void inicializar_menu() {
   botoes.botoes3[3].largura = 180;
   botoes.botoes3[3].altura = 40;
   botoes.botoes3[3].acao = MODO_CURVA_BEZIER;
-  
+
   strcpy(botoes_operacoes[0].texto, "Translacao");
   botoes_operacoes[0].x = 10;
   botoes_operacoes[0].y = 650;
@@ -83,21 +83,21 @@ void inicializar_menu() {
   botoes_operacoes[0].altura = 40;
   botoes_operacoes[0].acao = TRANSLACAO;
 
-   strcpy(botoes_operacoes[1].texto, "Rotacao");
+  strcpy(botoes_operacoes[1].texto, "Rotacao");
   botoes_operacoes[1].x = 10;
   botoes_operacoes[1].y = 700;
   botoes_operacoes[1].largura = 180;
   botoes_operacoes[1].altura = 40;
   botoes_operacoes[1].acao = ROTACAO;
 
-   strcpy(botoes_operacoes[2].texto, "Escala");
+  strcpy(botoes_operacoes[2].texto, "Escala");
   botoes_operacoes[2].x = 10;
   botoes_operacoes[2].y = 750;
   botoes_operacoes[2].largura = 180;
   botoes_operacoes[2].altura = 40;
   botoes_operacoes[2].acao = ESCALA;
 
-   strcpy(botoes_operacoes[3].texto, "Shear");
+  strcpy(botoes_operacoes[3].texto, "Shear");
   botoes_operacoes[3].x = 10;
   botoes_operacoes[3].y = 800;
   botoes_operacoes[3].largura = 180;
@@ -111,197 +111,128 @@ void desenhar_texto(float x, float y, void *font, char *texto) {
     glutBitmapCharacter(font, *c);
   }
 }
+void desenhar_botao_generico(void *botao, TipoBotao tipo, int indice) {
+  // Casting baseado no tipo
+  int x, y, largura, altura;
+  char *texto;
+  int ativo = 0;
+  int destacado = 0;
 
+  switch (tipo) {
+  case TIPO_BOTAO1: {
+    Botoes1 *b = (Botoes1 *)botao;
+    x = b->x;
+    y = b->y;
+    largura = b->largura;
+    altura = b->altura;
+    texto = b->texto;
+    destacado = b->destacado;
+    ativo = (estado_atual.criacao_ou_selecao == b->acao);
+    break;
+  }
+  case TIPO_BOTAO2: {
+    Botoes2 *b = (Botoes2 *)botao;
+    x = b->x;
+    y = b->y;
+    largura = b->largura;
+    altura = b->altura;
+    texto = b->texto;
+    destacado = b->destacado;
+    ativo = (estado_atual.poligono == b->acao);
+    break;
+  }
+  case TIPO_BOTAO3: {
+    Botoes3 *b = (Botoes3 *)botao;
+    x = b->x;
+    y = b->y;
+    largura = b->largura;
+    altura = b->altura;
+    texto = b->texto;
+    destacado = b->destacado;
+    ativo = (estado_atual.curva == b->acao);
+    break;
+  }
+  case TIPO_OPERACAO: {
+    BotoesOperacoes *b = (BotoesOperacoes *)botao;
+    x = b->x;
+    y = b->y;
+    largura = b->largura;
+    altura = b->altura;
+    texto = b->texto;
+    destacado = b->destacado;
+    ativo = (estado_atual.operacao == b->acao);
+    break;
+  }
+  }
+
+  // Código comum de desenho
+  if (ativo) {
+    glColor3f(0.2f, 0.7f, 0.2f);
+  } else if (destacado) {
+    glColor3f(0.9f, 0.9f, 0.7f);
+  } else {
+    glColor3f(0.95f, 0.95f, 0.95f);
+  }
+
+   // Desenhar retângulo do botão
+    glBegin(GL_QUADS);
+    glVertex2f(x, y);
+    glVertex2f(x + largura, y);
+    glVertex2f(x + largura, y + altura);
+    glVertex2f(x, y + altura);
+    glEnd();
+
+    // Contorno do botão
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glLineWidth(1.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(x, y);
+    glVertex2f(x + largura, y);
+    glVertex2f(x + largura, y + altura);
+    glVertex2f(x, y + altura);
+    glEnd();
+
+    // === DESENHAR TEXTO DO BOTÃO ===
+    glColor3f(0.0f, 0.0f, 0.0f); // Texto preto
+
+    // Calcular posição central do texto
+    void *font = GLUT_BITMAP_HELVETICA_12;
+    int texto_largura = 0;
+
+    // Calcular largura do texto
+    for (char *c = texto; *c != '\0'; c++) {
+      texto_largura += glutBitmapWidth(font, *c);
+    }
+
+    // Posição centralizada
+    float texto_x = x + (largura - texto_largura) / 2.0f;
+    float texto_y = y + (altura / 2.0f) -
+                    6; // -6 para centralizar verticalmente
+
+    // Desenhar o texto
+    desenhar_texto(texto_x, texto_y, font, texto);
+}
 void desenhar_botoes_menu() {
-  for (int i = 0; i < 3; i++) {
-    Botoes1 *botao = &botoes.botoes1[i];
-    if (estado_atual.criacao_ou_selecao == botao->acao) {
-      glColor3f(0.2f, 0.7f, 0.2f); // Verde se ativo
-    } else if (botao->destacado) {
-      glColor3f(0.9f, 0.9f, 0.7f); // Amarelo se mouse em cima
-    } else {
-      glColor3f(0.95f, 0.95f, 0.95f); // Cinza claro normal
+    // Botões de criação/seleção
+    for (int i = 0; i < 3; i++) {
+        desenhar_botao_generico(&botoes.botoes1[i], TIPO_BOTAO1, i);
     }
-    // Desenhar retângulo do botão
-    glBegin(GL_QUADS);
-    glVertex2f(botao->x, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
-    glVertex2f(botao->x, botao->y + botao->altura);
-    glEnd();
-
-    // Contorno do botão
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glLineWidth(1.0f);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(botao->x, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
-    glVertex2f(botao->x, botao->y + botao->altura);
-    glEnd();
-
-    // === DESENHAR TEXTO DO BOTÃO ===
-    glColor3f(0.0f, 0.0f, 0.0f); // Texto preto
-
-    // Calcular posição central do texto
-    void *font = GLUT_BITMAP_HELVETICA_12;
-    int texto_largura = 0;
-
-    // Calcular largura do texto
-    for (char *c = botao->texto; *c != '\0'; c++) {
-      texto_largura += glutBitmapWidth(font, *c);
+    
+    // Botões de polígono
+    for (int i = 0; i < 2; i++) {
+        desenhar_botao_generico(&botoes.botoes2[i], TIPO_BOTAO2, i);
     }
-
-    // Posição centralizada
-    float texto_x = botao->x + (botao->largura - texto_largura) / 2.0f;
-    float texto_y = botao->y + (botao->altura / 2.0f) -
-                    6; // -6 para centralizar verticalmente
-
-    // Desenhar o texto
-    desenhar_texto(texto_x, texto_y, font, botao->texto);
-  }
-  for (int i = 0; i < 4; i++) {
-    Botoes2 *botao = &botoes.botoes2[i];
-    if (estado_atual.poligono == botao->acao) {
-      glColor3f(0.2f, 0.7f, 0.2f); // Verde se ativo
-    } else if (botao->destacado) {
-      glColor3f(0.9f, 0.9f, 0.7f); // Amarelo se mouse em cima
-    } else {
-      glColor3f(0.95f, 0.95f, 0.95f); // Cinza claro normal
-    }
-    // Desenhar retângulo do botão
-    glBegin(GL_QUADS);
-    glVertex2f(botao->x, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
-    glVertex2f(botao->x, botao->y + botao->altura);
-    glEnd();
-
-    // Contorno do botão
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glLineWidth(1.0f);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(botao->x, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
-    glVertex2f(botao->x, botao->y + botao->altura);
-    glEnd();
-
-    // === DESENHAR TEXTO DO BOTÃO ===
-    glColor3f(0.0f, 0.0f, 0.0f); // Texto preto
-
-    // Calcular posição central do texto
-    void *font = GLUT_BITMAP_HELVETICA_12;
-    int texto_largura = 0;
-
-    // Calcular largura do texto
-    for (char *c = botao->texto; *c != '\0'; c++) {
-      texto_largura += glutBitmapWidth(font, *c);
-    }
-
-    // Posição centralizada
-    float texto_x = botao->x + (botao->largura - texto_largura) / 2.0f;
-    float texto_y = botao->y + (botao->altura / 2.0f) -
-                    6; // -6 para centralizar verticalmente
-
-    // Desenhar o texto
-    desenhar_texto(texto_x, texto_y, font, botao->texto);
-  }
-  for (int i = 0; i < 4; i++) {
-    Botoes3 *botao = &botoes.botoes3[i];
-    if (estado_atual.curva == botao->acao) {
-      glColor3f(0.2f, 0.7f, 0.2f); // Verde se ativo
-    } else if (botao->destacado) {
-      glColor3f(0.9f, 0.9f, 0.7f); // Amarelo se mouse em cima
-    } else {
-      glColor3f(0.95f, 0.95f, 0.95f); // Cinza claro normal
-    }
-    // Desenhar retângulo do botão
-    glBegin(GL_QUADS);
-    glVertex2f(botao->x, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
-    glVertex2f(botao->x, botao->y + botao->altura);
-    glEnd();
-
-    // Contorno do botão
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glLineWidth(1.0f);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(botao->x, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y);
-    glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
-    glVertex2f(botao->x, botao->y + botao->altura);
-    glEnd();
-
-    // === DESENHAR TEXTO DO BOTÃO ===
-    glColor3f(0.0f, 0.0f, 0.0f); // Texto preto
-
-    // Calcular posição central do texto
-    void *font = GLUT_BITMAP_HELVETICA_12;
-    int texto_largura = 0;
-
-    // Calcular largura do texto
-    for (char *c = botao->texto; *c != '\0'; c++) {
-      texto_largura += glutBitmapWidth(font, *c);
-    }
-
-    // Posição centralizada
-    float texto_x = botao->x + (botao->largura - texto_largura) / 2.0f;
-    float texto_y = botao->y + (botao->altura / 2.0f) -
-                    6; // -6 para centralizar verticalmente
-
-    // Desenhar o texto
-    desenhar_texto(texto_x, texto_y, font, botao->texto);
-  }
-  if (estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO |
-      estado_atual.criacao_ou_selecao == MODO_SELECIONAR_PONTO) {
+    
+    // Botões de curva
     for (int i = 0; i < 4; i++) {
-      BotoesOperacoes *botao = &botoes_operacoes[i];
-      if (estado_atual.operacao == botao->acao) {
-        glColor3f(0.2f, 0.7f, 0.2f); // Verde se ativo
-      } else if (botao->destacado) {
-        glColor3f(0.9f, 0.9f, 0.7f); // Amarelo se mouse em cima
-      } else {
-        glColor3f(0.95f, 0.95f, 0.95f); // Cinza claro normal
-      }
-      // Desenhar retângulo do botão
-      glBegin(GL_QUADS);
-      glVertex2f(botao->x, botao->y);
-      glVertex2f(botao->x + botao->largura, botao->y);
-      glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
-      glVertex2f(botao->x, botao->y + botao->altura);
-      glEnd();
-
-      // Contorno do botão
-      glColor3f(0.0f, 0.0f, 0.0f);
-      glLineWidth(1.0f);
-      glBegin(GL_LINE_LOOP);
-      glVertex2f(botao->x, botao->y);
-      glVertex2f(botao->x + botao->largura, botao->y);
-      glVertex2f(botao->x + botao->largura, botao->y + botao->altura);
-      glVertex2f(botao->x, botao->y + botao->altura);
-      glEnd();
-
-      // === DESENHAR TEXTO DO BOTÃO ===
-      glColor3f(0.0f, 0.0f, 0.0f); // Texto preto
-
-      // Calcular posição central do texto
-      void *font = GLUT_BITMAP_HELVETICA_12;
-      int texto_largura = 0;
-
-      // Calcular largura do texto
-      for (char *c = botao->texto; *c != '\0'; c++) {
-        texto_largura += glutBitmapWidth(font, *c);
-      }
-
-      // Posição centralizada
-      float texto_x = botao->x + (botao->largura - texto_largura) / 2.0f;
-      float texto_y = botao->y + (botao->altura / 2.0f) -
-                      6; // -6 para centralizar verticalmente
-
-      // Desenhar o texto
-      desenhar_texto(texto_x, texto_y, font, botao->texto);
+        desenhar_botao_generico(&botoes.botoes3[i], TIPO_BOTAO3, i);
     }
-  }
+    
+    // Botões de operação (condicionais)
+    if (estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO ||
+        estado_atual.criacao_ou_selecao == MODO_SELECIONAR_PONTO) {
+        for (int i = 0; i < 4; i++) {
+            desenhar_botao_generico(&botoes_operacoes[i], TIPO_OPERACAO, i);
+        }
+    }
 }

@@ -185,6 +185,9 @@ void processar_clique_menu(int x, int y) {
           y <= botao->y + botao->altura) {
 
         estado_atual.criacao_ou_selecao = botao->acao;
+        if(estado_atual.criacao_ou_selecao == MODO_CRIAR_PONTO){
+          estado_atual.operacao = NENHUMA;
+        }
         printf("Estado alterado para: %d\n", estado_atual.criacao_ou_selecao);
         glutPostRedisplay();
         break;

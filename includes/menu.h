@@ -20,6 +20,7 @@ typedef enum {
   MODO_CURVA_BSPLINE,
   MODO_CURVA_BEZIER
 } Curva;
+typedef enum { TIPO_BOTAO1, TIPO_BOTAO2, TIPO_BOTAO3, TIPO_OPERACAO } TipoBotao;
 
 typedef struct {
   Criacao_ou_selecao criacao_ou_selecao;
@@ -72,6 +73,7 @@ extern int menu_largura;
 // Funções do menu
 void inicializar_menu();
 void desenhar_texto(float x, float y, void *font, char *texto);
+void desenhar_botao_generico(void* botao, TipoBotao tipo, int indice);
 void desenhar_botoes_menu();
 void processar_clique_menu(int x, int y);
 void processar_mouse_move_menu(int x, int y);
