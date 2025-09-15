@@ -59,3 +59,11 @@ void pontos_free(Pontos *v) {
   v->data = NULL;
   v->quantidade_atual = v->quantidade_max = 0;
 }
+
+void esvazia_points(Pontos *v){
+  for(int i = 0; i < v->quantidade_atual; i++){
+    v->data[i].x = 0;
+    v->data[i].y = 0;
+  }
+  v ->quantidade_atual = 0;
+}

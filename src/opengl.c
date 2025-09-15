@@ -67,7 +67,7 @@ void desenhar_curva_atual() {
             glColor3f(0.5f, 1.0f, 0.5f);  // Verde claro
             break;
     }
-    
+    gerar_curva_selecionada();
     glLineWidth(3.0f);
     glBegin(GL_LINE_STRIP);
     for (int i = 0; i < g_curva_atual.quantidade_atual; i++) {
@@ -271,6 +271,9 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       estado_atual.poligono = poligono;
       break;
     case 2:
+      if(estado_atual.curva != curva){
+        
+      }
       estado_atual.curva = curva;
       break;
     case 3:
