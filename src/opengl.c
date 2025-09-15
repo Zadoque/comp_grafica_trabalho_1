@@ -35,7 +35,7 @@ void desenhar_conteudo_principal() {
     glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
   }
   glEnd();
-  printf("\n O número de pontos a serem desenhados são %zu \n", g_clicks.quantidade_atual);
+  //printf("\n O número de pontos a serem desenhados são %zu \n", g_clicks.quantidade_atual);
 
   // Desenhar conforme o estado atual
   switch (estado_atual) {
@@ -160,7 +160,7 @@ void processar_clique_desenho(int x, int y) {
         x = traduzCoordenadaX(x);
         y = traduzCoordenadaY(y);
         pontos_push(&g_clicks, (float)x, (float)y);
-        printf("Ponto adicionado: (%.1f, %.1f)\n", (float)x, (float)y);
+        //printf("Ponto adicionado: (%.1f, %.1f)\n", (float)x, (float)y);
         glutPostRedisplay();
     }
     // Aqui você adicionará lógica para outros modos depois

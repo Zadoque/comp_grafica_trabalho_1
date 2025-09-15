@@ -7,6 +7,7 @@
 typedef enum {
     MODO_CRIAR_PONTO,
     MODO_SELECIONAR_PONTO,
+    MODO_SELECIONAR_POLIGONO,
     MODO_POLIGONO_ABERTO,
     MODO_POLIGONO_FECHADO,
     MODO_CURVA_HERMITE,
@@ -25,11 +26,12 @@ typedef struct {
 
 // Variáveis globais do menu
 extern EstadoAplicacao estado_atual;
-extern BotaoMenu botoes_menu[8];
+extern BotaoMenu botoes_menu[9];
 extern int menu_largura;
 
 // Funções do menu
 void inicializar_menu();
+void desenhar_texto(float x, float y, void* font, char* texto);
 void desenhar_botoes_menu();
 void processar_clique_menu(int x, int y);
 void processar_mouse_move_menu(int x, int y);
