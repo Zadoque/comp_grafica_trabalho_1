@@ -33,41 +33,30 @@ ponto calcular_ponto_hermite(ponto P1, ponto P2, ponto T1, ponto T2, float t) {
 
   return resultado;
 }
-
-void calcular_tangentes_hermite(Pontos *pontos_controle, ponto *T1, ponto *T2,
-                                int indice) {
-  if (pontos_controle->quantidade_atual < 2)
-    return;
-
-  // Tangente T1 (no primeiro ponto)
-  if (indice > 0) {
-    // Usar diferença com ponto anterior
-    T1->x =
-        pontos_controle->data[indice].x - pontos_controle->data[indice - 1].x;
-    T1->y =
-        pontos_controle->data[indice].y - pontos_controle->data[indice - 1].y;
-  } else {
-    // Primeiro ponto: usar diferença com próximo
-    T1->x =
-        pontos_controle->data[indice + 1].x - pontos_controle->data[indice].x;
-    T1->y =
-        pontos_controle->data[indice + 1].y - pontos_controle->data[indice].y;
-  }
-
-  // Tangente T2 (no segundo ponto)
-  if (indice < pontos_controle->quantidade_atual - 2) {
-    // Usar diferença com próximo ponto
-    T2->x = pontos_controle->data[indice + 2].x -
-            pontos_controle->data[indice + 1].x;
-    T2->y = pontos_controle->data[indice + 2].y -
-            pontos_controle->data[indice + 1].y;
-  } else {
-    // Último segmento: usar diferença anterior
-    T2->x =
-        pontos_controle->data[indice + 1].x - pontos_controle->data[indice].x;
-    T2->y =
-        pontos_controle->data[indice + 1].y - pontos_controle->data[indice].y;
-  }
+void calcular_tangentes_hermite(Pontos* pontos_controle, ponto* T1, ponto* T2, int indice) {
+    if (pontos_controle->quantidade_atual < 2) return;
+    
+    // Tangente T1 (no primeiro ponto)
+    if (indice > 0) {
+        // Usar diferença com ponto anterior
+        T1->x = pontos_controle->data[indice].x - pontos_controle->data[indice-1].x;
+        T1->y = pontos_controle->data[indice].y - pontos_controle->data[indice-1].y;
+    } else {
+        // Primeiro ponto: usar diferença com próximo
+        T1->x = pontos_controle->data[indice+1].x - pontos_controle->data[indice].x;
+        T1->y = pontos_controle->data[indice+1].y - pontos_controle->data[indice].y;
+    }
+    
+    // Tangente T2 (no segundo ponto)  
+    if (indice < pontos_controle->quantidade_atual - 2) {
+        // Usar diferença com próximo ponto
+        T2->x = pontos_controle->data[indice+2].x - pontos_controle->data[indice+1].x;
+        T2->y = pontos_controle->data[indice+2].y - pontos_controle->data[indice+1].y;
+    } else {
+        // Último segmento: usar diferença anterior
+        T2->x = pontos_controle->data[indice+1].x - pontos_controle->data[indice].x;
+        T2->y = pontos_controle->data[indice+1].y - pontos_controle->data[indice].y;
+    }
 }
 
 void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado,
@@ -77,7 +66,7 @@ void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado,
 
   // Limpar curva anterior
   curva_resultado->quantidade_atual = 0;
-
+  
   // Gerar segmentos entre pares de pontos consecutivos
   for (int i = 0; i < pontos_controle->quantidade_atual - 1; i++) {
     ponto P1 = pontos_controle->data[i];
@@ -99,7 +88,7 @@ void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado,
       pontos_push(curva_resultado, p.x, p.y);
     }
   }
-
-  printf("Curva Hermite gerada com %zu pontos\n",
+  
+  printf("Curva Hermite Fechada gerada com %zu pontos\n",
          curva_resultado->quantidade_atual);
 }

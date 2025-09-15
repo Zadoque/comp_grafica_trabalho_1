@@ -1,210 +1,232 @@
 #include "./../includes/opengl.h"
+#include <GL/freeglut_std.h>
+#include <GL/gl.h>
 #include <GL/glut.h>
 #include <stdio.h>
 
 // Variáveis globais
 Pontos g_clicks;
-Pontos g_curva_atual;  // Nova: armazenar pontos da curva gerada
+Pontos g_curva_atual; // Nova: armazenar pontos da curva gerada
 
 // Configurações visuais
 static float cor_fundo[3] = {0.2f, 0.3f, 0.4f};
-static int resolucao_curva = 500;  // Qualidade da curva
+static int resolucao_curva = 500; // Qualidade da curva
 
 void initGL() {
-    glClearColor(cor_fundo[0], cor_fundo[1], cor_fundo[2], 1.0f);
-    glPointSize(7.0f);
-    glLineWidth(2.0f);
-    
-    // Inicializar estrutura para curva
-    pontos_init(&g_curva_atual, 100);
-    
-    printf("OpenGL inicializado com sucesso!\n");
+  glClearColor(cor_fundo[0], cor_fundo[1], cor_fundo[2], 1.0f);
+  glPointSize(7.0f);
+  glLineWidth(2.0f);
+
+  // Inicializar estrutura para curva
+  pontos_init(&g_curva_atual, 100);
+
+  printf("OpenGL inicializado com sucesso!\n");
 }
 
 void gerar_curva_selecionada() {
-    if (g_clicks.quantidade_atual < 2) return;
-    
-    switch (estado_atual.curva) {
-        case MODO_CURVA_HERMITE:
-            gerar_curva_hermite(&g_clicks, &g_curva_atual, resolucao_curva);
-            break;
-            
-        case MODO_CURVA_BEZIER:
-            if (g_clicks.quantidade_atual >= 4) {
-                gerar_curva_bezier(&g_clicks, &g_curva_atual, resolucao_curva);
-            }
-            break;
-            
-        case MODO_CURVA_BSPLINE:
-            if (g_clicks.quantidade_atual >= 4) {
-                gerar_curva_bspline(&g_clicks, &g_curva_atual, resolucao_curva);
-            }
-            break;
-            
-        case MODO_CURVA_CATMULLROM:
-            if (g_clicks.quantidade_atual >= 4) {
-                gerar_curva_catmullrom(&g_clicks, &g_curva_atual, resolucao_curva);
-            }
-            break;
+  if (g_clicks.quantidade_atual < 2)
+    return;
+  int fechado = (estado_atual.poligono == MODO_POLIGONO_FECHADO) ? 1 : 0;
+
+  switch (estado_atual.curva) {
+  case MODO_CURVA_HERMITE:
+    gerar_curva_hermite(&g_clicks, &g_curva_atual, resolucao_curva);
+    break;
+
+  case MODO_CURVA_BEZIER:
+    if (g_clicks.quantidade_atual >= 4) {
+      gerar_curva_bezier(&g_clicks, &g_curva_atual, resolucao_curva);
     }
+    break;
+
+  case MODO_CURVA_BSPLINE:
+    if (g_clicks.quantidade_atual >= 4) {
+      gerar_curva_bspline(&g_clicks, &g_curva_atual, resolucao_curva);
+    }
+    break;
+
+  case MODO_CURVA_CATMULLROM:
+    if (g_clicks.quantidade_atual >= 4) {
+      gerar_curva_catmullrom(&g_clicks, &g_curva_atual, resolucao_curva);
+    }
+    break;
+  }
 }
 
 void desenhar_curva_atual() {
-    if (g_curva_atual.quantidade_atual < 2) return;
-    
-    // Definir cor da curva baseada no tipo
-    switch (estado_atual.curva) {
-        case MODO_CURVA_HERMITE:
-            glColor3f(1.0f, 0.0f, 1.0f);  // Magenta
-            break;
-        case MODO_CURVA_BEZIER:
-            glColor3f(0.0f, 0.0f, 1.0f);  // Azul
-            break;
-        case MODO_CURVA_BSPLINE:
-            glColor3f(1.0f, 0.5f, 0.0f);  // Laranja
-            break;
-        case MODO_CURVA_CATMULLROM:
-            glColor3f(0.5f, 1.0f, 0.5f);  // Verde claro
-            break;
-    }
-    gerar_curva_selecionada();
-    glLineWidth(3.0f);
-    glBegin(GL_LINE_STRIP);
-    for (int i = 0; i < g_curva_atual.quantidade_atual; i++) {
-        glVertex2f(g_curva_atual.data[i].x, g_curva_atual.data[i].y);
-    }
-    glEnd();
+  if (g_curva_atual.quantidade_atual < 2)
+    return;
+
+  // Definir cor da curva baseada no tipo
+  switch (estado_atual.curva) {
+  case MODO_CURVA_HERMITE:
+    glColor3f(1.0f, 0.0f, 1.0f); // Magenta
+    break;
+  case MODO_CURVA_BEZIER:
+    glColor3f(0.0f, 0.0f, 1.0f); // Azul
+    break;
+  case MODO_CURVA_BSPLINE:
+    glColor3f(1.0f, 0.5f, 0.0f); // Laranja
+    break;
+  case MODO_CURVA_CATMULLROM:
+    glColor3f(0.5f, 1.0f, 0.5f); // Verde claro
+    break;
+  }
+  gerar_curva_selecionada();
+  glLineWidth(3.0f);
+  glBegin(GL_LINE_STRIP);
+  for (int i = 0; i < g_curva_atual.quantidade_atual; i++) {
+    glVertex2f(g_curva_atual.data[i].x, g_curva_atual.data[i].y);
+  }
+  glEnd();
 }
 
 // Suas funções existentes...
 void AlteraTamanhoJanela(int w, int h) {
-    glViewport(0, 0, w, h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+  glViewport(0, 0, w, h);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
 
-    int meio_x = (w - 200) / 2;
-    int meio_y = h / 2;
-    gluOrtho2D(-meio_x, meio_x, -meio_y, meio_y);
+  int meio_x = (w - 200) / 2;
+  int meio_y = h / 2;
+  gluOrtho2D(-meio_x, meio_x, -meio_y, meio_y);
 
-    glMatrixMode(GL_MODELVIEW);
+  glMatrixMode(GL_MODELVIEW);
 }
 
 void desenhar_conteudo_principal() {
-    // Desenhar pontos de controle
-    glColor3f(1.0f, 0.0f, 0.0f);  // Vermelho
-    glPointSize(8.0f);
-    glBegin(GL_POINTS);
-    for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
-    }
-    glEnd();
+  // Desenhar pontos de controle
+  glColor3f(1.0f, 0.0f, 0.0f); // Vermelho
+  glPointSize(8.0f);
+  glBegin(GL_POINTS);
+  for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+    glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+  }
+  glEnd();
 
-    // Desenhar polígono de controle
-    switch (estado_atual.poligono) {
-        case MODO_POLIGONO_ABERTO:
-            if (g_clicks.quantidade_atual >= 2) {
-                glColor3f(0.0f, 1.0f, 0.0f);  // Verde
-                glLineWidth(2.0f);
-                glBegin(GL_LINE_STRIP);
-                for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-                    glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
-                }
-                glEnd();
-            }
-            break;
-            
-        case MODO_POLIGONO_FECHADO:
-            if (g_clicks.quantidade_atual >= 3) {
-                glColor3f(0.0f, 1.0f, 0.0f);  // Verde
-                glLineWidth(3.0f);
-                glBegin(GL_LINE_LOOP);
-                for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-                    glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
-                }
-                glEnd();
-            }
-            break;
+  // Desenhar polígono de controle
+  switch (estado_atual.poligono) {
+  case MODO_POLIGONO_ABERTO:
+    if (g_clicks.quantidade_atual >= 2) {
+      glColor3f(0.0f, 1.0f, 0.0f); // Verde
+      glLineWidth(2.0f);
+      glBegin(GL_LINE_STRIP);
+      for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+      }
+      glEnd();
     }
-    
-    // Desenhar curva selecionada
-    desenhar_curva_atual();
+    break;
+
+  case MODO_POLIGONO_FECHADO:
+    if (g_clicks.quantidade_atual >= 3) {
+      glColor3f(0.0f, 1.0f, 0.0f); // Verde
+      glLineWidth(3.0f);
+      glBegin(GL_LINE_STRIP);
+      for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+      }
+      glEnd();
+    }
+    break;
+  }
+
+  // Desenhar curva selecionada
+  desenhar_curva_atual();
 }
 
 void display() {
-    int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
-    int altura_janela = glutGet(GLUT_WINDOW_HEIGHT);
-    int largura_desenho = largura_janela - menu_largura;
+  int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
+  int altura_janela = glutGet(GLUT_WINDOW_HEIGHT);
+  int largura_desenho = largura_janela - menu_largura;
 
-    glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
 
-    // === PARTE 1: DESENHAR ÁREA PRINCIPAL ===
-    glViewport(0, 0, largura_desenho, altura_janela);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D((float)(largura_desenho )/ 2 * (-1), (float) (largura_desenho) / 2,
-               (float)(altura_janela )/ 2 * (-1), (float)(altura_janela) / 2);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+  // === PARTE 1: DESENHAR ÁREA PRINCIPAL ===
+  glViewport(0, 0, largura_desenho, altura_janela);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D((float)(largura_desenho) / 2 * (-1), (float)(largura_desenho) / 2,
+             (float)(altura_janela) / 2 * (-1), (float)(altura_janela) / 2);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 
-    // Desenhar eixos
-    glColor3f(0.5f, 0.5f, 0.5f);
-    glBegin(GL_LINES);
-    glVertex2f(-(int)(largura_desenho / 2), 0);
-    glVertex2f((int)(largura_desenho / 2), 0);
-    glVertex2f(0, -(int)(altura_janela / 2));
-    glVertex2f(0, (int)(altura_janela / 2));
-    glEnd();
+  // Desenhar eixos
+  glColor3f(0.5f, 0.5f, 0.5f);
+  glBegin(GL_LINES);
+  glVertex2f(-(int)(largura_desenho / 2), 0);
+  glVertex2f((int)(largura_desenho / 2), 0);
+  glVertex2f(0, -(int)(altura_janela / 2));
+  glVertex2f(0, (int)(altura_janela / 2));
+  glEnd();
 
-    // Desenhar conteúdo
-    desenhar_conteudo_principal();
+  // Desenhar conteúdo
+  desenhar_conteudo_principal();
 
-    // === PARTE 2: DESENHAR MENU LATERAL ===
-    glViewport(largura_desenho, 0, menu_largura, altura_janela);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, menu_largura, 0, altura_janela);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+  // === PARTE 2: DESENHAR MENU LATERAL ===
+  glViewport(largura_desenho, 0, menu_largura, altura_janela);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(0, menu_largura, 0, altura_janela);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 
-    // Fundo do menu
-    glColor3f(0.8f, 0.8f, 0.8f);
-    glBegin(GL_QUADS);
-    glVertex2f(0, 0);
-    glVertex2f(menu_largura, 0);
-    glVertex2f(menu_largura, altura_janela);
-    glVertex2f(0, altura_janela);
-    glEnd();
+  // Fundo do menu
+  glColor3f(0.8f, 0.8f, 0.8f);
+  glBegin(GL_QUADS);
+  glVertex2f(0, 0);
+  glVertex2f(menu_largura, 0);
+  glVertex2f(menu_largura, altura_janela);
+  glVertex2f(0, altura_janela);
+  glEnd();
 
-    desenhar_botoes_menu();
-    glFlush();
+  desenhar_botoes_menu();
+  glFlush();
 }
 
 void processar_clique_desenho(int x, int y) {
-    x = traduzCoordenadaX(x);
-    y = traduzCoordenadaY(y);
-    
-    if (estado_atual.criacao_ou_selecao == MODO_CRIAR_PONTO) {
-        pontos_push(&g_clicks, (float)x, (float)y);
-        
-        // Regenerar curva automaticamente
-        gerar_curva_selecionada();
-        
-        glutPostRedisplay();
-    } else if (estado_atual.criacao_ou_selecao == MODO_SELECIONAR_PONTO) {
-        // Implementar seleção de pontos aqui
-        printf("Modo selecionar ponto - implementar\n");
-    }
-}
+  x = traduzCoordenadaX(x);
+  y = traduzCoordenadaY(y);
 
+  if (estado_atual.criacao_ou_selecao == MODO_CRIAR_PONTO) {
+    if (g_clicks.quantidade_atual < 2) {
+      pontos_push(&g_clicks, (float)x, (float)y);
+      glutPostRedisplay();
+      // Regenerar curva automaticamente
+    } else if (estado_atual.poligono == MODO_POLIGONO_FECHADO) {
+      if (g_clicks.quantidade_atual > 3) {
+        ponto p = g_clicks.data[g_clicks.quantidade_atual];
+        g_clicks.data[g_clicks.quantidade_atual].x = (float)x;
+        g_clicks.data[g_clicks.quantidade_atual].y = (float)y;
+        pontos_push(&g_clicks, g_clicks.data[0].x, g_clicks.data[0].y);
+        glutPostRedisplay();
+      } else {
+        pontos_push(&g_clicks, (float)x, (float)y);
+        pontos_push(&g_clicks, g_clicks.data[0].x, g_clicks.data[0].y);
+        glutPostRedisplay();
+      }
+    } else {
+      gerar_curva_selecionada();
+      glutPostRedisplay();
+      pontos_push(&g_clicks, (float)x, (float)y);
+      // Regenerar curva automaticamente
+      //  gerar_curva_selecionada();
+    }
+    
+  } else if (estado_atual.criacao_ou_selecao == MODO_SELECIONAR_PONTO) {
+    // Implementar seleção de pontos aqui
+    printf("Modo selecionar ponto - implementar\n");
+  }
+}
 // Resto das suas funções permanecem iguais...
 int traduzCoordenadaX(int x) {
-    int largura = (glutGet(GLUT_WINDOW_WIDTH) - menu_largura) / 2;
-    return (x < largura) ? (largura - x) * (-1) : x - largura;
+  int largura = (glutGet(GLUT_WINDOW_WIDTH) - menu_largura) / 2;
+  return (x < largura) ? (largura - x) * (-1) : x - largura;
 }
 
 int traduzCoordenadaY(int y) {
-    int altura = glutGet(GLUT_WINDOW_HEIGHT) / 2;
-    return (y < altura) ? (altura - y) : (y - altura) * (-1);
+  int altura = glutGet(GLUT_WINDOW_HEIGHT) / 2;
+  return (y < altura) ? (altura - y) : (y - altura) * (-1);
 }
 
 void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
@@ -271,8 +293,7 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       estado_atual.poligono = poligono;
       break;
     case 2:
-      if(estado_atual.curva != curva){
-        
+      if (estado_atual.curva != curva) {
       }
       estado_atual.curva = curva;
       break;
