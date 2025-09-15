@@ -8,7 +8,7 @@ Pontos g_curva_atual;  // Nova: armazenar pontos da curva gerada
 
 // Configurações visuais
 static float cor_fundo[3] = {0.2f, 0.3f, 0.4f};
-static int resolucao_curva = 50;  // Qualidade da curva
+static int resolucao_curva = 500;  // Qualidade da curva
 
 void initGL() {
     glClearColor(cor_fundo[0], cor_fundo[1], cor_fundo[2], 1.0f);
