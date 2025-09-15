@@ -35,17 +35,8 @@ void desenhar_conteudo_principal() {
     glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
   }
   glEnd();
-  //printf("\n O número de pontos a serem desenhados são %zu \n", g_clicks.quantidade_atual);
 
-  // Desenhar conforme o estado atual
-  switch (estado_atual) {
-  case MODO_CRIAR_PONTO:
-    printf("Modo criar ponto agora\n");
-    break;
-  case MODO_SELECIONAR_PONTO:
-    printf("Modo Selecionar ponto agora\n");
-    break;
-
+  switch (estado_atual.poligono) {
   case MODO_POLIGONO_ABERTO:
     if (g_clicks.quantidade_atual >= 2) {
       glColor3f(0.0f, 1.0f, 0.0f);
@@ -57,7 +48,6 @@ void desenhar_conteudo_principal() {
       glEnd();
     }
     break;
-
   case MODO_POLIGONO_FECHADO:
     if (g_clicks.quantidade_atual >= 3) {
       glColor3f(0.0f, 1.0f, 0.0f);
@@ -69,25 +59,45 @@ void desenhar_conteudo_principal() {
       glEnd();
     }
     break;
-
-  case MODO_CURVA_HERMITE:
-    // Aqui você implementará as curvas depois
-    printf("Modo Hermite ativo - implementar curva\n");
-    break;
-
-  case MODO_CURVA_BEZIER:
-    printf("Modo Bezier ativo - implementar curva\n");
-    break;
-  case MODO_CURVA_BSPLINE:
-    printf("Modo BSpline ativo - implementar curva\n");
-    break;
-  case MODO_CURVA_CATMULLROM:
-    printf("Modo Hermite ativo - implementar curva\n");
-    break;
-  default:
-    printf("Modo incorreto selceionado");
-    break;
   }
+  // printf("\n O número de pontos a serem desenhados são %zu \n",
+  // g_clicks.quantidade_atual);
+  /*
+    // Desenhar conforme o estado atual
+    switch (estado_atual) {
+    case MODO_CRIAR_PONTO:
+      printf("Modo criar ponto agora\n");
+      break;
+    case MODO_SELECIONAR_PONTO:
+      printf("Modo Selecionar ponto agora\n");
+      break;
+
+    case MODO_POLIGONO_ABERTO:
+
+      break;
+
+    case MODO_POLIGONO_FECHADO:
+
+
+    case MODO_CURVA_HERMITE:
+      // Aqui você implementará as curvas depois
+      printf("Modo Hermite ativo - implementar curva\n");
+      break;
+
+    case MODO_CURVA_BEZIER:
+      printf("Modo Bezier ativo - implementar curva\n");
+      break;
+    case MODO_CURVA_BSPLINE:
+      printf("Modo BSpline ativo - implementar curva\n");
+      break;
+    case MODO_CURVA_CATMULLROM:
+      printf("Modo Hermite ativo - implementar curva\n");
+      break;
+    default:
+      printf("Modo incorreto selceionado");
+      break;
+    }
+      */
 }
 
 void display() {
@@ -101,9 +111,8 @@ void display() {
   glViewport(0, 0, largura_desenho, altura_janela);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D((int)(largura_desenho / 2 * (-1)),
-             (int)(largura_desenho / 2 ), (int)(altura_janela / 2 * (-1)),
-             (int)(altura_janela / 2));
+  gluOrtho2D((int)(largura_desenho / 2 * (-1)), (int)(largura_desenho / 2),
+             (int)(altura_janela / 2 * (-1)), (int)(altura_janela / 2));
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -148,74 +157,131 @@ int traduzCoordenadaX(int x) {
 }
 
 int traduzCoordenadaY(int y) {
-  int altura = glutGet(GLUT_WINDOW_HEIGHT)  / 2;
+  int altura = glutGet(GLUT_WINDOW_HEIGHT) / 2;
   return (y < altura) ? (altura - y) : (y - altura) * (-1);
 }
 
-
-
 void processar_clique_desenho(int x, int y) {
-    if (estado_atual == MODO_CRIAR_PONTO) {
-        // Converter coordenadas para o sistema cartesiano
-        x = traduzCoordenadaX(x);
-        y = traduzCoordenadaY(y);
-        pontos_push(&g_clicks, (float)x, (float)y);
-        //printf("Ponto adicionado: (%.1f, %.1f)\n", (float)x, (float)y);
-        glutPostRedisplay();
-    }
-    // Aqui você adicionará lógica para outros modos depois
+  // Converter coordenadas para o sistema cartesiano
+  x = traduzCoordenadaX(x);
+  y = traduzCoordenadaY(y);
+  if (estado_atual.criacao_ou_selecao == MODO_CRIAR_PONTO) {
+    pontos_push(&g_clicks, (float)x, (float)y);
+    // printf("Ponto adicionado: (%.1f, %.1f)\n", (float)x, (float)y);
+    glutPostRedisplay();
+  } else if (estado_atual.criacao_ou_selecao == MODO_SELECIONAR_PONTO) {
+  }
+  // Aqui você adicionará lógica para outros modos depois
 }
 
 void processar_clique_menu(int x, int y) {
-    int altura_janela = glutGet(GLUT_WINDOW_HEIGHT);
-    y = altura_janela - y; // Inverter Y (GLUT usa origem superior esquerda)
-    
-    for (int i = 0; i < 8; i++) {
-        BotaoMenu *botao = &botoes_menu[i];
-        
-        // Verificar se clique foi dentro do botão
-        if (x >= botao->x && x <= botao->x + botao->largura &&
-            y >= botao->y && y <= botao->y + botao->altura) {
-            
-            estado_atual = botao->acao;
-            printf("Estado alterado para: %d\n", estado_atual);
-            glutPostRedisplay();
-            break;
-        }
+  int altura_janela = glutGet(GLUT_WINDOW_HEIGHT);
+  y = altura_janela - y; // Inverter Y (GLUT usa origem superior esquerda)
+  if (y <= 190) {
+    for (int i = 0; i < 3; i++) {
+      Botoes1 *botao = &botoes.botoes1[i];
+      // Verificar se clique foi dentro do botão
+      if (x >= botao->x && x <= botao->x + botao->largura && y >= botao->y &&
+          y <= botao->y + botao->altura) {
+
+        estado_atual.criacao_ou_selecao = botao->acao;
+        printf("Estado alterado para: %d\n", estado_atual.criacao_ou_selecao);
+        glutPostRedisplay();
+        break;
+      }
     }
+  } else if (y <= 340) {
+    for (int i = 0; i < 2; i++) {
+      Botoes2 *botao = &botoes.botoes2[i];
+      // Verificar se clique foi dentro do botão
+      if (x >= botao->x && x <= botao->x + botao->largura && y >= botao->y &&
+          y <= botao->y + botao->altura) {
+
+        estado_atual.poligono = botao->acao;
+        printf("Estado alterado para: %d\n", estado_atual.poligono);
+        glutPostRedisplay();
+        break;
+      }
+    }
+  } else if( y <= 590){
+    for (int i = 0; i < 4; i++) {
+      Botoes3 *botao = &botoes.botoes3[i];
+      // Verificar se clique foi dentro do botão
+      if (x >= botao->x && x <= botao->x + botao->largura && y >= botao->y &&
+          y <= botao->y + botao->altura) {
+
+        estado_atual.curva = botao->acao;
+        printf("Estado alterado para: %d\n", estado_atual.curva);
+        glutPostRedisplay();
+        break;
+      }
+    }
+  } else if(estado_atual.criacao_ou_selecao != MODO_CRIAR_PONTO){
+    for (int i = 0; i < 4; i++) {
+      BotoesOperacoes *botao = &botoes_operacoes[i];
+      // Verificar se clique foi dentro do botão
+      if (x >= botao->x && x <= botao->x + botao->largura && y >= botao->y &&
+          y <= botao->y + botao->altura) {
+
+        estado_atual.operacao= botao->acao;
+        printf("Estado alterado para: %d\n", estado_atual.curva);
+        glutPostRedisplay();
+        break;
+      }
+    }
+  }
 }
 
 void onMouse(int button, int state, int x, int y) {
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
-        int largura_desenho = largura_janela - menu_largura;
-        
-        if (x < largura_desenho) {
-            // Clique na área de desenho
-            processar_clique_desenho(x, y);
-        } else {
-            // Clique no menu
-            processar_clique_menu(x - largura_desenho, y);
-        }
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
+    int largura_desenho = largura_janela - menu_largura;
+
+    if (x < largura_desenho) {
+      // Clique na área de desenho
+      processar_clique_desenho(x, y);
+    } else {
+      // Clique no menu
+      processar_clique_menu(x - largura_desenho, y);
     }
+  }
 }
 
 void onMouseMove(int x, int y) {
-    int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
-    int largura_desenho = largura_janela - menu_largura;
-    
-    if (x >= largura_desenho) {
-        // Mouse no menu
-        int menu_x = x - largura_desenho;
-        int menu_y = glutGet(GLUT_WINDOW_HEIGHT) - y;
-        
-        for (int i = 0; i < 8; i++) {
-            BotaoMenu *botao = &botoes_menu[i];
-            botao->destacado = (menu_x >= botao->x && 
-                              menu_x <= botao->x + botao->largura &&
-                              menu_y >= botao->y && 
-                              menu_y <= botao->y + botao->altura);
-        }
-        glutPostRedisplay();
+  int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
+  int largura_desenho = largura_janela - menu_largura;
+
+  if (x >= largura_desenho) {
+    // Mouse no menu
+    int menu_x = x - largura_desenho;
+    int menu_y = glutGet(GLUT_WINDOW_HEIGHT) - y;
+
+    for (int i = 0; i < 3; i++) {
+      Botoes1 *botao = &botoes.botoes1[i];
+      botao->destacado =
+          (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&
+           menu_y >= botao->y && menu_y <= botao->y + botao->altura);
     }
+    for (int i = 0; i < 2; i++) {
+      Botoes2 *botao = &botoes.botoes2[i];
+      botao->destacado =
+          (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&
+           menu_y >= botao->y && menu_y <= botao->y + botao->altura);
+    }
+    for (int i = 0; i < 4; i++) {
+      Botoes3 *botao = &botoes.botoes3[i];
+      botao->destacado =
+          (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&
+           menu_y >= botao->y && menu_y <= botao->y + botao->altura);
+    }
+    if(estado_atual.criacao_ou_selecao != MODO_CRIAR_PONTO){
+      for (int i = 0; i < 4; i++) {
+      BotoesOperacoes *botao = &botoes_operacoes[i];
+      botao->destacado =
+          (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&
+           menu_y >= botao->y && menu_y <= botao->y + botao->altura);
+    }
+    }
+    glutPostRedisplay();
+  }
 }

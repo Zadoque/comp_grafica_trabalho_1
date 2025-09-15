@@ -17,6 +17,7 @@ void onMouseMove(int x, int y);
 // Funções auxiliares
 void desenhar_conteudo_principal();
 void processar_clique_desenho(int x, int y);
+void processar_clique_menu(int x, int y) ;
 int traduzCoordenadaX(int x);
 int traduzCoordenadaY(int y);
 
