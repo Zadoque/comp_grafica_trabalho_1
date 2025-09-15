@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv) {
   printf("=== Trabalho de Computação Gráfica ===\n");
-  
+
   // Inicializar GLUT
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
@@ -15,19 +15,20 @@ int main(int argc, char **argv) {
   glutReshapeFunc(AlteraTamanhoJanela);
   glutDisplayFunc(display);
   glutMouseFunc(onMouse);
+  glutPassiveMotionFunc(onMouseMove);
 
   // Inicializar estruturas de dados para os pontos
   pontos_init(&g_clicks, 20);
   // Inicializar menu
-  inicializar_menu();  
+  inicializar_menu();
   // Inicializar OpenGL
   initGL();
-  
+
   printf("Clique na janela para adicionar pontos!\n");
-  
+
   // Loop principal
   glutMainLoop();
-  
+
   // Limpeza (nunca será executada devido ao glutMainLoop)
   pontos_free(&g_clicks);
   return 0;

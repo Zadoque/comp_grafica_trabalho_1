@@ -43,7 +43,7 @@ void desenhar_conteudo_principal() {
     printf("Modo criar ponto agora\n");
     break;
   case MODO_SELECIONAR_PONTO:
-    printf("Modo Selecionar ponto agora");
+    printf("Modo Selecionar ponto agora\n");
     break;
 
   case MODO_POLIGONO_ABERTO:
@@ -197,5 +197,25 @@ void onMouse(int button, int state, int x, int y) {
             // Clique no menu
             processar_clique_menu(x - largura_desenho, y);
         }
+    }
+}
+
+void onMouseMove(int x, int y) {
+    int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
+    int largura_desenho = largura_janela - menu_largura;
+    
+    if (x >= largura_desenho) {
+        // Mouse no menu
+        int menu_x = x - largura_desenho;
+        int menu_y = glutGet(GLUT_WINDOW_HEIGHT) - y;
+        
+        for (int i = 0; i < 8; i++) {
+            BotaoMenu *botao = &botoes_menu[i];
+            botao->destacado = (menu_x >= botao->x && 
+                              menu_x <= botao->x + botao->largura &&
+                              menu_y >= botao->y && 
+                              menu_y <= botao->y + botao->altura);
+        }
+        glutPostRedisplay();
     }
 }

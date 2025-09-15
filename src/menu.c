@@ -84,7 +84,7 @@ void desenhar_botoes_menu() {
         
         // Texto seria desenhado aqui (requer bitmap fonts)
         // Por enquanto, use printf para debug
-        printf("Vamo bora que vai dar certo");
+        
     }
 }
 
