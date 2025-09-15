@@ -16,34 +16,59 @@ echo -e "${YELLOW}=== Compilando $PROJECT_NAME ===${NC}"
 echo "Criando diretórios..."
 mkdir -p obj bin
 
-# Verificar se existem arquivos .c em src/
-if ! ls src/*.c 1> /dev/null 2>&1; then
-    echo -e "${RED}Erro: Nenhum arquivo .c encontrado em src/${NC}"
-    exit 1
+# Verificar se o diretório de curvas existe
+if [ ! -d "src/curvas" ]; then
+    echo -e "${YELLOW}Aviso: Diretório src/curvas/ não encontrado${NC}"
+    echo "Criando diretório src/curvas/..."
+    mkdir -p src/curvas
 fi
 
-# Listar arquivos que serão compilados
-echo -e "${BLUE}Arquivos encontrados:${NC}"
-for srcfile in src/*.c; do
-    if [ -f "$srcfile" ]; then
-        echo "  - $(basename $srcfile)"
+# Definir lista de fontes para compilar
+SRC_FILES=(
+  src/main.c
+  src/pontos.c
+  src/opengl.c
+  src/menu.c
+  src/curvas/hermite.c
+  src/curvas/bezier.c
+  src/curvas/bspline.c
+  src/curvas/catmullrom.c
+)
+
+# Verificar se os arquivos existem
+echo -e "${BLUE}Verificando arquivos fonte...${NC}"
+MISSING_FILES=0
+for file in "${SRC_FILES[@]}"; do
+    if [ ! -f "$file" ]; then
+        echo -e "${YELLOW}⚠ Arquivo não encontrado: $(basename $file)${NC}"
+        MISSING_FILES=1
+    else
+        echo -e "${GREEN}✓ $(basename $file)${NC}"
     fi
 done
 
-# Compilar arquivos .c individualmente
-echo -e "${BLUE}Compilando arquivos fonte...${NC}"
-COMPILE_ERROR=0
+if [ $MISSING_FILES -eq 1 ]; then
+    echo -e "${YELLOW}Alguns arquivos estão faltando, mas continuando com os disponíveis...${NC}"
+fi
 
-for srcfile in src/*.c; do
+# Listar arquivos que serão compilados
+echo -e "${BLUE}Compilando arquivos encontrados:${NC}"
+
+# Compilar arquivos .c individualmente
+COMPILE_ERROR=0
+COMPILED_COUNT=0
+
+for srcfile in "${SRC_FILES[@]}"; do
     if [ -f "$srcfile" ]; then
         objfile="obj/$(basename ${srcfile%.c}.o)"
         echo -n "  $(basename $srcfile) -> $(basename $objfile)... "
         
         if gcc -c -Wall -Wextra -std=c99 -Iinclude "$srcfile" -o "$objfile" 2>/dev/null; then
             echo -e "${GREEN}OK${NC}"
+            ((COMPILED_COUNT++))
         else
             echo -e "${RED}ERRO${NC}"
-            echo -e "${RED}Detalhes do erro:${NC}"
+            echo -e "${RED}Detalhes do erro para $(basename $srcfile):${NC}"
             gcc -c -Wall -Wextra -std=c99 -Iinclude "$srcfile" -o "$objfile"
             COMPILE_ERROR=1
         fi
@@ -56,16 +81,26 @@ if [ $COMPILE_ERROR -eq 1 ]; then
     exit 1
 fi
 
+if [ $COMPILED_COUNT -eq 0 ]; then
+    echo -e "${RED}Nenhum arquivo foi compilado!${NC}"
+    exit 1
+fi
+
 # Verificar se todos os arquivos objeto foram criados
 echo -e "${BLUE}Verificando arquivos objeto...${NC}"
-EXPECTED_FILES=(main pontos opengl menu)
+EXPECTED_FILES=(main pontos opengl menu hermite bezier bspline catmullrom)
+FOUND_OBJECTS=0
+
 for file in "${EXPECTED_FILES[@]}"; do
     if [ -f "obj/${file}.o" ]; then
         echo -e "  ${file}.o: ${GREEN}✓${NC}"
+        ((FOUND_OBJECTS++))
     else
         echo -e "  ${file}.o: ${YELLOW}⚠ (não encontrado)${NC}"
     fi
 done
+
+echo -e "${BLUE}Total de objetos compilados: ${FOUND_OBJECTS}/${#EXPECTED_FILES[@]}${NC}"
 
 # Linkar e gerar executável
 echo -e "${BLUE}Linkando executável...${NC}"
@@ -80,10 +115,16 @@ fi
 
 echo -e "${GREEN}╔════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║     Compilação Bem Sucedida!       ║${NC}"
+echo -e "${GREEN}║   Arquivos compilados: $COMPILED_COUNT/8          ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════╝${NC}"
 echo -e "${GREEN}Executável: bin/$PROJECT_NAME${NC}"
 
-# Executar o programa
-echo -e "${YELLOW}Executando programa...${NC}"
-echo -e "${BLUE}(Pressione Ctrl+C para sair)${NC}"
-./bin/$PROJECT_NAME
+# Verificar se o executável foi criado
+if [ -f "bin/$PROJECT_NAME" ]; then
+    echo -e "${YELLOW}Executando programa...${NC}"
+    echo -e "${BLUE}(Pressione Ctrl+C para sair)${NC}"
+    ./bin/$PROJECT_NAME
+else
+    echo -e "${RED}Erro: Executável não foi gerado!${NC}"
+    exit 1
+fi
