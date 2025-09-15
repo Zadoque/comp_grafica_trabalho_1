@@ -16,17 +16,17 @@ Desenvolvimento de uma aplicação gráfica interativa que permite:
 ### 📊 **Visualização**
 - [x] Polígono de controle fechado
 - [x] Pontos de controle interativos
-- [ ] Curva Hermite
-- [ ] Curva Bézier  
-- [ ] Curva B-Spline
-- [ ] Curva Catmull-Rom
+- [x] Curva Hermite
+- [x] Curva Bézier  
+- [x] Curva B-Spline
+- [x] Curva Catmull-Rom
 
 ### 🎮 **Interação**
 - [x] Criação de pontos por clique do mouse
 - [x] Sistema de coordenadas cartesianas
-- [ ] Menu interativo
+- [x] Menu interativo
 - [ ] Seleção e movimentação de vértices
-- [ ] Alternância entre tipos de curva
+- [x] Alternância entre tipos de curva
 
 ### 🔄 **Transformações Geométricas**
 - [ ] **Translação** - Mover objetos no plano
@@ -71,9 +71,9 @@ chmod +x MakeFile.sh
 | Ação | Comando |
 |------|---------|
 | Adicionar ponto | Clique esquerdo |
-| Alternar modo | Teclas 1-4 |
-| Limpar pontos | Tecla C |
-| Menu | Clique direito |
+| Alternar modo |Pelo menu Interativo|
+| Limpar pontos | Ainda não é possível|
+| Menu | a direita|
 | Sair | ESC |
 
 
