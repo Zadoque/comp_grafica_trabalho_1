@@ -42,10 +42,11 @@ void rotacionar(Pontos *pontos, ponto centro, float angulo_graus) {
   transladar_para_origem(pontos, centro);
   for (int i = 0; i < pontos->quantidade_atual; i++) {
     float x_original = pontos->data[i].x;
-        float y_original = pontos->data[i].y;
-        pontos->data[i].x = x_original * cosf(angulo_rad) - y_original * sinf(angulo_rad);
-        pontos->data[i].y = x_original * sinf(angulo_rad) + y_original * cosf(angulo_rad);
-    
+    float y_original = pontos->data[i].y;
+    pontos->data[i].x =
+        x_original * cosf(angulo_rad) - y_original * sinf(angulo_rad);
+    pontos->data[i].y =
+        x_original * sinf(angulo_rad) + y_original * cosf(angulo_rad);
   }
   trasladar_de_volta(pontos, centro);
 }
