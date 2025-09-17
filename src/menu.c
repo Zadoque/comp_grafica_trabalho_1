@@ -27,7 +27,7 @@ void inicializar_menu() {
   botoes.botoes1[1].altura = 40;
   botoes.botoes1[1].acao = MODO_SELECIONAR_PONTO;
 
-  strcpy(botoes.botoes1[2].texto, "Selecionar Poligono");
+  strcpy(botoes.botoes1[2].texto, "Operar Poligono");
   botoes.botoes1[2].x = 10;
   botoes.botoes1[2].y = 150;
   botoes.botoes1[2].largura = 180;
@@ -229,10 +229,12 @@ void desenhar_botoes_menu() {
     }
     
     // Botões de operação (condicionais)
-    if (estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO ||
-        estado_atual.criacao_ou_selecao == MODO_SELECIONAR_PONTO) {
+    if (estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO) {
         for (int i = 0; i < 4; i++) {
             desenhar_botao_generico(&botoes_operacoes[i], TIPO_OPERACAO, i);
         }
+    } else if(estado_atual.criacao_ou_selecao == MODO_SELECIONAR_PONTO){
+      desenhar_botao_generico(&botoes_operacoes[0], TIPO_OPERACAO,0);
+      estado_atual.operacao = TRANSLACAO;
     }
 }

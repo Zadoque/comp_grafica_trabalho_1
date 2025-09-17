@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
   glutDisplayFunc(display);
   glutMouseFunc(onMouse);
   glutPassiveMotionFunc(onMouseMove);
+  glutMotionFunc(onMotion);
 
   // Inicializar estruturas de dados para os pontos
   pontos_init(&g_clicks, 20);

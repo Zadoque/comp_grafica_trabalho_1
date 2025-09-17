@@ -34,8 +34,8 @@ ponto calcular_ponto_bezier(ponto P0, ponto P1, ponto P2, ponto P3, float t) {
   return resultado;
 }
 
-void gerar_curva_bezier(Pontos *pontos_controle, Pontos *curva_resultado,
-                        int resolucao) {
+void gerar_curva_bezier(Pontos *pontos_controle, Pontos *curva_resultado
+                        ) {
   if (pontos_controle->quantidade_atual < 4)
     return;
 
@@ -47,7 +47,7 @@ void gerar_curva_bezier(Pontos *pontos_controle, Pontos *curva_resultado,
     ponto P1 = pontos_controle->data[i + 1];
     ponto P2 = pontos_controle->data[i + 2];
     ponto P3 = pontos_controle->data[i + 3];
-
+    int resolucao = (int)(calcula_distancia(P0, P1)) * 5;
     // Gerar pontos do segmento
     for (int j = 0; j <= resolucao; j++) {
       float t = (float)j / (float)resolucao;

@@ -7,10 +7,10 @@
 // Variáveis globais
 Pontos g_clicks;
 Pontos g_curva_atual; // Nova: armazenar pontos da curva gerada
+Selecao selecao;
 
 // Configurações visuais
 static float cor_fundo[3] = {0.2f, 0.3f, 0.4f};
-static int resolucao_curva = 500; // Qualidade da curva
 
 void initGL() {
   glClearColor(cor_fundo[0], cor_fundo[1], cor_fundo[2], 1.0f);
@@ -19,6 +19,8 @@ void initGL() {
 
   // Inicializar estrutura para curva
   pontos_init(&g_curva_atual, 100);
+  selecao.selecionado = 0;
+  selecao.indice = 0;
 
   printf("OpenGL inicializado com sucesso!\n");
 }
@@ -33,7 +35,7 @@ void gerar_curva_selecionada() {
 
   case MODO_CURVA_BEZIER:
     if (g_clicks.quantidade_atual >= 4) {
-      gerar_curva_bezier(&g_clicks, &g_curva_atual, resolucao_curva);
+      gerar_curva_bezier(&g_clicks, &g_curva_atual);
     }
     break;
 
@@ -45,14 +47,17 @@ void gerar_curva_selecionada() {
 
   case MODO_CURVA_CATMULLROM:
     if (g_clicks.quantidade_atual >= 4) {
-      gerar_curva_catmullrom(&g_clicks, &g_curva_atual, resolucao_curva);
+      gerar_curva_catmullrom(&g_clicks, &g_curva_atual);
     }
     break;
   }
 }
 
 void desenhar_curva_atual() {
-  if ( !(g_clicks.quantidade_atual > 3 && estado_atual.curva != MODO_CURVA_HERMITE || estado_atual.curva == MODO_CURVA_HERMITE && g_clicks.quantidade_atual >2))
+  if (!(g_clicks.quantidade_atual > 3 &&
+            estado_atual.curva != MODO_CURVA_HERMITE ||
+        estado_atual.curva == MODO_CURVA_HERMITE &&
+            g_clicks.quantidade_atual > 2))
     return;
 
   // Definir cor da curva baseada no tipo
@@ -101,6 +106,7 @@ void desenhar_conteudo_principal() {
     glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
   }
   glEnd();
+
   if (g_clicks.quantidade_atual >= 2) {
     glColor3f(0.0f, 1.0f, 0.0f); // Verde
     glLineWidth(2.0f);
@@ -110,29 +116,6 @@ void desenhar_conteudo_principal() {
     }
     glEnd();
   }
-
-  // Desenhar polígono de controle
-  /* switch (estado_atual.poligono) {
-   case MODO_POLIGONO_ABERTO:
-     if (g_clicks.quantidade_atual >= 2) {
-
-     }
-     break;
-
-   case MODO_POLIGONO_FECHADO:
-     if (g_clicks.quantidade_atual >= 3) {
-       glColor3f(0.0f, 1.0f, 0.0f); // Verde
-       glLineWidth(3.0f);
-       glBegin(GL_LINE_STRIP);
-       for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-         glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
-       }
-       glEnd();
-     }
-     break;
-   }
- */
-  // Desenhar curva selecionada
   desenhar_curva_atual();
 }
 
@@ -143,7 +126,7 @@ void display() {
 
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // === PARTE 1: DESENHAR ÁREA PRINCIPAL ===
+  //  PARTE 1: DESENHAR ÁREA PRINCIPAL
   glViewport(0, 0, largura_desenho, altura_janela);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -191,7 +174,8 @@ void processar_clique_desenho(int x, int y) {
   int quantidade_atual =
       g_clicks.quantidade_atual ? g_clicks.quantidade_atual : 1;
 
-  if (estado_atual.criacao_ou_selecao == MODO_CRIAR_PONTO) {
+  switch (estado_atual.criacao_ou_selecao) {
+  case MODO_CRIAR_PONTO:
     if (estado_atual.poligono == MODO_POLIGONO_FECHADO &&
         g_clicks.quantidade_atual >= 2) {
 
@@ -215,8 +199,21 @@ void processar_clique_desenho(int x, int y) {
     }
 
     glutPostRedisplay();
+    break;
+  case MODO_SELECIONAR_PONTO:
+    for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+      ponto mouse;
+      mouse.x = x;
+      mouse.y = y;
+      if (calcula_distancia(mouse, g_clicks.data[i]) < 3) {
+        selecao.selecionado = 1;
+        selecao.indice = i;
+      }
+    }
+    break;
+  case MODO_SELECIONAR_POLIGONO:
+    break;
   }
-    // Implementar seleção de pontos aqui
 }
 // Resto das suas funções permanecem iguais...
 int traduzCoordenadaX(int x) {
@@ -290,11 +287,14 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       }
       break;
     case 1:
-      if(estado_atual.poligono == MODO_POLIGONO_FECHADO && poligono == MODO_POLIGONO_ABERTO && g_clicks.quantidade_atual > 2){
+      if (estado_atual.poligono == MODO_POLIGONO_FECHADO &&
+          poligono == MODO_POLIGONO_ABERTO && g_clicks.quantidade_atual > 2) {
         g_clicks.quantidade_atual--;
         g_clicks.data[g_clicks.quantidade_atual].x = 0.0;
         g_clicks.data[g_clicks.quantidade_atual].y = 0.0;
-      } else if(estado_atual.poligono == MODO_POLIGONO_ABERTO && poligono == MODO_POLIGONO_FECHADO && g_clicks.quantidade_atual > 2){
+      } else if (estado_atual.poligono == MODO_POLIGONO_ABERTO &&
+                 poligono == MODO_POLIGONO_FECHADO &&
+                 g_clicks.quantidade_atual > 2) {
         pontos_push(&g_clicks, g_clicks.data[0].x, g_clicks.data[0].y);
       }
       estado_atual.poligono = poligono;
@@ -346,6 +346,12 @@ void onMouse(int button, int state, int x, int y) {
       processar_clique_menu(x - largura_desenho, y);
     }
   }
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+    if (selecao.selecionado) {
+      selecao.selecionado = 0;
+      selecao.indice = 0;
+    }
+  }
 }
 
 void onMouseMove(int x, int y) {
@@ -384,5 +390,26 @@ void onMouseMove(int x, int y) {
       }
     }
     glutPostRedisplay();
+  }
+}
+
+void onMotion(int x, int y) {
+  x = traduzCoordenadaX(x);
+  y = traduzCoordenadaY(y);
+  if (selecao.selecionado) {
+    if ((selecao.indice == 0 ||
+         selecao.indice == g_clicks.quantidade_atual - 1) &&
+        estado_atual.poligono == MODO_POLIGONO_FECHADO &&
+        g_clicks.quantidade_atual > 2) {
+      g_clicks.data[0].x = x;
+      g_clicks.data[0].y = y;
+      g_clicks.data[g_clicks.quantidade_atual - 1].x = x;
+      g_clicks.data[g_clicks.quantidade_atual - 1].y = y;
+    } else {
+      g_clicks.data[selecao.indice].x = x;
+      g_clicks.data[selecao.indice].y = y;
+    }
+
+    glutPostRedisplay(); // Redesenhar se necessário
   }
 }

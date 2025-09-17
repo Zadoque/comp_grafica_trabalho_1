@@ -34,8 +34,7 @@ ponto calcular_ponto_catmullrom(ponto P0, ponto P1, ponto P2, ponto P3,
   return resultado;
 }
 
-void gerar_curva_catmullrom(Pontos *pontos_controle, Pontos *curva_resultado,
-                            int resolucao) {
+void gerar_curva_catmullrom(Pontos *pontos_controle, Pontos *curva_resultado) {
   if (pontos_controle->quantidade_atual < 4)
     return;
 
@@ -47,20 +46,46 @@ void gerar_curva_catmullrom(Pontos *pontos_controle, Pontos *curva_resultado,
     ponto P1 = pontos_controle->data[i + 1];
     ponto P2 = pontos_controle->data[i + 2];
     ponto P3 = pontos_controle->data[i + 3];
+    int resolucao = (int)(calcula_distancia(P1, P2)) * 5;
 
     // Gerar pontos do segmento
     for (int j = 0; j <= resolucao; j++) {
-      float t = (float)j / (float)resolucao;
+      float t = (float)(j + 0.000001) / (float)resolucao;
       ponto p = calcular_ponto_catmullrom(P0, P1, P2, P3, t);
 
       // Evitar duplicar pontos entre segmentos
-      if (i > 0 && j == 0)
-        continue;
+     
 
       pontos_push(curva_resultado, p.x, p.y);
     }
   }
-
-  printf("Curva Catmull-Rom gerada com %zu pontos\n",
-         curva_resultado->quantidade_atual);
+  
+  if ((pontos_controle->data[0].x ==
+       pontos_controle->data[pontos_controle->quantidade_atual - 1].x) &&
+      pontos_controle->data[0].y ==
+          pontos_controle->data[pontos_controle->quantidade_atual - 1].y) {
+    for (int i = 0; i < 3; i++) {
+      ponto P0 =
+          pontos_controle->data[(pontos_controle->quantidade_atual - 3 + i) %
+                                pontos_controle->quantidade_atual];
+      ponto P1 =
+          pontos_controle->data[(pontos_controle->quantidade_atual - 2 + i) %
+                                pontos_controle->quantidade_atual];
+      ponto P2 =
+          pontos_controle->data[(pontos_controle->quantidade_atual - 1 + i) %
+                                pontos_controle->quantidade_atual];
+      ponto P3 = pontos_controle->data[(pontos_controle->quantidade_atual + i) %
+                                       pontos_controle->quantidade_atual];
+      int resolucao = (int)(calcula_distancia(P1, P2)) * 5;
+      // Gerar pontos do segmento
+      for (int j = 0; j <= resolucao; j++) {
+        float t = (float)(j + 0.00001) / (float)resolucao;
+        ponto p = calcular_ponto_catmullrom(P0, P1, P2, P3, t);
+        pontos_push(curva_resultado, p.x, p.y);
+      }
+    }
+    printf("Curva Catmull-Rom gerada com %zu pontos\n",
+           curva_resultado->quantidade_atual);
+  }
+           
 }

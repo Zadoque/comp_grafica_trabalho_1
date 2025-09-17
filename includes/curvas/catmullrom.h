@@ -11,7 +11,7 @@
  * - Ideal para trajetórias e animações
  */
 
-void gerar_curva_catmullrom(Pontos* pontos_controle, Pontos* curva_resultado, int resolucao);
+void gerar_curva_catmullrom(Pontos* pontos_controle, Pontos* curva_resultado);
 ponto calcular_ponto_catmullrom(ponto P0, ponto P1, ponto P2, ponto P3, float t);
 
 #endif
