@@ -33,5 +33,7 @@ void pontos_init(Pontos *v, size_t cap0);
 void pontos_push(Pontos *v, float x, float y);
 void pontos_free(Pontos *v);
 void esvazia_points(Pontos *v);
+double raiz_quadrada_newton(double n);
+float calcula_distancia(ponto P1, ponto P2);
 
 #endif

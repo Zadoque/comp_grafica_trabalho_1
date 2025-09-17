@@ -1,6 +1,7 @@
 #include "../../includes/curvas/hermite.h"
+
 // #include <math.h>
-#include <stdio.h>
+//#include <stdio.h>
 
 // Matriz de Hermite (corrigida)
 static const float MATRIZ_HERMITE[4][4] = {
@@ -33,62 +34,50 @@ ponto calcular_ponto_hermite(ponto P1, ponto P2, ponto T1, ponto T2, float t) {
 
   return resultado;
 }
-void calcular_tangentes_hermite(Pontos* pontos_controle, ponto* T1, ponto* T2, int indice) {
-    if (pontos_controle->quantidade_atual < 2) return;
-    
-    // Tangente T1 (no primeiro ponto)
-    if (indice > 0) {
-        // Usar diferença com ponto anterior
-        T1->x = pontos_controle->data[indice].x - pontos_controle->data[indice-1].x;
-        T1->y = pontos_controle->data[indice].y - pontos_controle->data[indice-1].y;
-    } else {
-        // Primeiro ponto: usar diferença com próximo
-        T1->x = pontos_controle->data[indice+1].x - pontos_controle->data[indice].x;
-        T1->y = pontos_controle->data[indice+1].y - pontos_controle->data[indice].y;
-    }
-    
-    // Tangente T2 (no segundo ponto)  
-    if (indice < pontos_controle->quantidade_atual - 2) {
-        // Usar diferença com próximo ponto
-        T2->x = pontos_controle->data[indice+2].x - pontos_controle->data[indice+1].x;
-        T2->y = pontos_controle->data[indice+2].y - pontos_controle->data[indice+1].y;
-    } else {
-        // Último segmento: usar diferença anterior
-        T2->x = pontos_controle->data[indice+1].x - pontos_controle->data[indice].x;
-        T2->y = pontos_controle->data[indice+1].y - pontos_controle->data[indice].y;
-    }
+void calcular_tangentes_hermite(ponto P1, ponto P2, ponto P3, ponto P4,
+                                ponto *T1, ponto *T2) {
+  T1->x = P2.x - P1.x;
+  T1->y = P2.y - P1.y;
+  T2->x = P4.x - P3.x;
+  T2->y = P4.y - P3.y;
 }
 
-void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado,
-                         int resolucao) {
-  if (pontos_controle->quantidade_atual < 2)
+void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado) {
+  if (pontos_controle->quantidade_atual <= 2)
     return;
 
   // Limpar curva anterior
+
   curva_resultado->quantidade_atual = 0;
-  
-  // Gerar segmentos entre pares de pontos consecutivos
-  for (int i = 0; i < pontos_controle->quantidade_atual - 1; i++) {
-    ponto P1 = pontos_controle->data[i];
-    ponto P2 = pontos_controle->data[i + 1];
-
-    // Calcular tangentes para este segmento
-    ponto T1, T2;
-    calcular_tangentes_hermite(pontos_controle, &T1, &T2, i);
-
-    // Gerar pontos do segmento
+  int i = 0;
+  ponto P0;
+  ponto P1;
+  ponto P2;
+  ponto T1;
+  ponto T2;
+  int resolucao;
+  while (pontos_controle->quantidade_atual - i >= 4) {
+    ponto P3 = pontos_controle->data[i + 3];
+    P0 = pontos_controle->data[i];
+    P1 = pontos_controle->data[i + 1];
+    P2 = pontos_controle->data[i + 2];
+    resolucao = (int)(calcula_distancia(P0, P1)) * 5;
+    calcular_tangentes_hermite(P0, P1, P2, P3, &T1, &T2);
     for (int j = 0; j <= resolucao; j++) {
-      float t = (float)j / (float)resolucao;
-      ponto p = calcular_ponto_hermite(P1, P2, T1, T2, t);
-
-      // Evitar duplicar pontos entre segmentos
-      if (i > 0 && j == 0)
-        continue;
-
+      float t = ((float)(j) + 0.0001) / (float)(resolucao);
+      ponto p = calcular_ponto_hermite(P0, P1, T1, T2, t);
       pontos_push(curva_resultado, p.x, p.y);
     }
+    i++;
   }
-  
-  printf("Curva Hermite Fechada gerada com %zu pontos\n",
-         curva_resultado->quantidade_atual);
+  P0 = pontos_controle->data[i];
+  P1 = pontos_controle->data[i + 1];
+  P2 = pontos_controle->data[i + 2];
+  calcular_tangentes_hermite(P0, P1, P1, P2, &T1, &T2);
+  resolucao = (int)(calcula_distancia(P0, P1)) * 5;
+  for (int j = 0; j <= resolucao; j++) {
+    float t = ((float)(j) + 0.0001) / (float)(resolucao);
+    ponto p = calcular_ponto_hermite(P0, P1, T1, T2, t);
+    pontos_push(curva_resultado, p.x, p.y);
+  }
 }

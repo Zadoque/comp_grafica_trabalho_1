@@ -2,27 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Definição das matrizes (movidas de global para aqui)
-const float HERMITE[4][4] = {{2.0f, -2.0f, 1.0f, 1.0f},
-                            {-3.0f, 3.0f, -2.0f, -1.0f},
-                            {0.0f, 0.0f, 1.0f, 0.0f},
-                            {1.0f, 0.0f, 0.0f, 0.0f}};
 
-const float BEZIER[4][4] = {{-1.0f, 3.0f, -3.0f, 1.0f},
-                           {3.0f, -6.0f, 3.0f, 0.0f},
-                           {-3.0f, 3.0f, 0.0f, 0.0f},
-                           {1.0f, 0.0f, 0.0f, 0.0f}};
-
-const float BSPLINE[4][4] = {
-    {-1.0f / 6.0f, 3.0f / 6.0f, -3.0f / 6.0f, 1.0f / 6.0f},
-    {3.0f / 6.0f, -6.0f / 6.0f, 3.0f / 6.0f, 0.0f / 6.0f},
-    {-3.0f / 6.0f, 0.0f / 6.0f, 3.0f / 6.0f, 0.0f / 6.0f},
-    {1.0f / 6.0f, 4.0f / 6.0f, 1.0f / 6.0f, 0.0f / 6.0f}};
-
-const float CATMULLROM[4][4] = {{-0.5f, 1.5f, -1.5f, 0.5f},
-                               {1.0f, -2.5f, 2.0f, -0.5f},
-                               {-0.5f, 0.0f, 0.5f, 0.0f},
-                               {0.0f, 1.0f, 0.0f, 0.0f}};
 
 void pontos_init(Pontos *v, size_t cap0) {
   v->quantidade_atual = 0;
@@ -66,4 +46,30 @@ void esvazia_points(Pontos *v){
     v->data[i].y = 0;
   }
   v ->quantidade_atual = 0;
+}
+double raiz_quadrada_newton(double n) {
+  if (n < 0)
+    return -1; // Erro para números negativos
+  if (n == 0)
+    return 0;
+
+  double x = n;            // Estimativa inicial
+  double precisao = 0.001; // Precisão desejada
+
+  while (1) {
+    double nova_estimativa = (x + n / x) / 2.0;
+
+    // Verifica se atingiu a precisão desejada
+    if ((nova_estimativa - x) < precisao && (nova_estimativa - x) > -precisao)
+      break;
+
+    x = nova_estimativa;
+  }
+
+  return x;
+}
+float calcula_distancia(ponto P1, ponto P2) {
+  double dist_x = (double)(P2.x - P1.x);
+  double dist_y = (double)(P2.y - P1.y);
+  return raiz_quadrada_newton(dist_x * dist_x + dist_y * dist_y);
 }
