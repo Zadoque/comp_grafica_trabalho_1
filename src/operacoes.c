@@ -60,3 +60,19 @@ void rotacionar(Pontos *pontos, ponto centro, float angulo_graus)
   }
   trasladar_de_volta(pontos, centro);
 }
+
+
+void aumentar_escala(Pontos* pontos, ponto centro){
+  for(int i = 0; i < pontos->quantidade_atual; i++){
+    pontos->data[i].x += (pontos->data[i].x - centro.x)*0.05;
+    pontos->data[i].y += (pontos->data[i].y -centro.x)*0.05;
+  }
+}
+
+
+void diminuir_escala(Pontos* pontos, ponto centro){
+  for(int i = 0; i < pontos->quantidade_atual; i++){
+    pontos->data[i].x -= (pontos->data[i].x - centro.x)*0.05;
+    pontos->data[i].y -= (pontos->data[i].y -centro.x)*0.05;
+  }
+}

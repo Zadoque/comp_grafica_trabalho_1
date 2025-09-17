@@ -104,7 +104,6 @@ void desenhar_centro_poligono() {
     return;
 
   // Usar função robusta da geometria.c
-  
 
   // Desenhar cruz no centro
   glColor3f(1.0f, 1.0f, 0.0f); // Magenta
@@ -245,10 +244,10 @@ void processar_clique_desenho(int x, int y) {
       ponto mouse;
       mouse.x = x;
       mouse.y = y;
-      if ((calcula_distancia(centro,  mouse)) < 3){
+      if ((calcula_distancia(centro, mouse)) < 3) {
         selecao_poligono = 1;
       }
-        break;
+      break;
     }
   }
 }
@@ -342,7 +341,7 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       break;
     case 3:
       estado_atual.operacao = operacao;
-      if(operacao == ROTACAO){
+      if (operacao == ROTACAO) {
         rotacionar(&g_clicks, centro, 30.0);
       }
       break;
@@ -374,29 +373,41 @@ void processar_clique_menu(int x, int y) {
 }
 
 void onMouse(int button, int state, int x, int y) {
-  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-    int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
-    int largura_desenho = largura_janela - menu_largura;
-
-    if (x < largura_desenho) {
-      // Clique na área de desenho
-      processar_clique_desenho(x, y);
+  if (button == GLUT_LEFT_BUTTON) {
+    if (state == GLUT_DOWN) {
+      int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
+      int largura_desenho = largura_janela - menu_largura;
+      if (x < largura_desenho) {
+        // Clique na área de desenho
+        processar_clique_desenho(x, y);
+      } else {
+        // Clique no menu
+        processar_clique_menu(x - largura_desenho, y);
+      }
     } else {
-      // Clique no menu
-      processar_clique_menu(x - largura_desenho, y);
+      if (selecao_ponto.selecionado) {
+        selecao_ponto.selecionado = 0;
+        selecao_ponto.indice = 0;
+      }
+      if (selecao_poligono) {
+        selecao_poligono = 0;
+      }
     }
   }
-  if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-    if (selecao_ponto.selecionado) {
-      selecao_ponto.selecionado = 0;
-      selecao_ponto.indice = 0;
-    }
-    if( selecao_poligono){
-
-      selecao_poligono = 0;
+  if((button == 3 || button == 4) && estado_atual.operacao == ESCALA){
+    ponto mouse;
+    mouse.x = traduzCoordenadaX(x);
+    mouse.y = traduzCoordenadaY(y);
+    if(calcula_distancia(mouse, centro) < 3){
+      if(button == 3){
+        aumentar_escala(&g_clicks, centro);
+      } else {
+        diminuir_escala(&g_clicks, centro);
+      }
+      calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
+      glutPostRedisplay();
     }
   }
-  
 }
 
 void onMouseMove(int x, int y) {
@@ -456,10 +467,10 @@ void onMotion(int x, int y) {
     }
     calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
     glutPostRedisplay(); // Redesenhar se necessário
-  } else if(selecao_poligono == 1 && estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO){
-    translacao_com_mouse(&g_clicks,  centro, x, y);
+  } else if (selecao_poligono == 1 &&
+             estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO) {
+    translacao_com_mouse(&g_clicks, centro, x, y);
     calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
     glutPostRedisplay();
   }
-
 }
