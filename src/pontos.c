@@ -1,7 +1,7 @@
 #include "./../includes/pontos.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <math.h>
 
 
 void pontos_init(Pontos *v, size_t cap0) {
@@ -47,29 +47,9 @@ void esvazia_points(Pontos *v){
   }
   v ->quantidade_atual = 0;
 }
-double raiz_quadrada_newton(double n) {
-  if (n < 0)
-    return -1; // Erro para números negativos
-  if (n == 0)
-    return 0;
 
-  double x = n;            // Estimativa inicial
-  double precisao = 0.001; // Precisão desejada
-
-  while (1) {
-    double nova_estimativa = (x + n / x) / 2.0;
-
-    // Verifica se atingiu a precisão desejada
-    if ((nova_estimativa - x) < precisao && (nova_estimativa - x) > -precisao)
-      break;
-
-    x = nova_estimativa;
-  }
-
-  return x;
-}
 float calcula_distancia(ponto P1, ponto P2) {
   double dist_x = (double)(P2.x - P1.x);
   double dist_y = (double)(P2.y - P1.y);
-  return raiz_quadrada_newton(dist_x * dist_x + dist_y * dist_y);
+  return sqrt(dist_x * dist_x + dist_y * dist_y);
 }
