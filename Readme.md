@@ -25,12 +25,12 @@ Desenvolvimento de uma aplicação gráfica interativa que permite:
 - [x] Criação de pontos por clique do mouse
 - [x] Sistema de coordenadas cartesianas
 - [x] Menu interativo
-- [ ] Seleção e movimentação de vértices
+- [x] Seleção e movimentação de vértices
 - [x] Alternância entre tipos de curva
 
 ### 🔄 **Transformações Geométricas**
-- [ ] **Translação** - Mover objetos no plano
-- [ ] **Rotação** - Rotacionar em torno de um ponto
+- [x] **Translação** - Mover objetos no plano
+- [x] **Rotação** - Rotacionar em torno de um ponto
 - [ ] **Escala** - Redimensionar objetos
 - [ ] **Espelhamento** - Reflexão em eixos
 - [ ] **Shear** - Cisalhamento/inclinação
