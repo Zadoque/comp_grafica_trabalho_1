@@ -1,6 +1,6 @@
 #include "../../includes/curvas/bezier.h"
 // #include <math.h>
-#include <stdio.h>
+//#include <stdio.h>
 
 // Matriz de Bézier (corrigida)
 static const float MATRIZ_BEZIER[4][4] = {
@@ -61,6 +61,6 @@ void gerar_curva_bezier(Pontos *pontos_controle, Pontos *curva_resultado
     }
   }
 
-  printf("Curva Bézier gerada com %zu pontos\n",
-         curva_resultado->quantidade_atual);
+//  printf("Curva Bézier gerada com %zu pontos\n",
+         //curva_resultado->quantidade_atual);
 }

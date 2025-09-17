@@ -1,6 +1,6 @@
 #include "../../includes/curvas/catmullrom.h"
 // #include <math.h>
-#include <stdio.h>
+//#include <stdio.h>
 
 // Matriz Catmull-Rom (corrigida e dividida por 2)
 static const float MATRIZ_CATMULLROM[4][4] = {
@@ -84,8 +84,8 @@ void gerar_curva_catmullrom(Pontos *pontos_controle, Pontos *curva_resultado) {
         pontos_push(curva_resultado, p.x, p.y);
       }
     }
-    printf("Curva Catmull-Rom gerada com %zu pontos\n",
-           curva_resultado->quantidade_atual);
+    //printf("Curva Catmull-Rom gerada com %zu pontos\n",
+          // curva_resultado->quantidade_atual);
   }
            
 }

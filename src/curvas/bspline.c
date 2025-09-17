@@ -1,6 +1,6 @@
 #include "../../includes/curvas/bspline.h"
 // #include <math.h>
-#include <stdio.h>
+//#include <stdio.h>
 
 // Matriz B-Spline (corrigida e dividida por 6)
 static const float MATRIZ_BSPLINE[4][4] = {
@@ -78,6 +78,6 @@ void gerar_curva_bspline(Pontos *pontos_controle, Pontos *curva_resultado) {
     }
   }
 
-  printf("Curva B-Spline gerada com %zu pontos\n",
-         curva_resultado->quantidade_atual);
+  //printf("Curva B-Spline gerada com %zu pontos\n",
+         //curva_resultado->quantidade_atual);
 }

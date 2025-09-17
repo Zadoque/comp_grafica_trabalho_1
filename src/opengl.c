@@ -7,7 +7,9 @@
 // Variáveis globais
 Pontos g_clicks;
 Pontos g_curva_atual; // Nova: armazenar pontos da curva gerada
-Selecao selecao;
+Selecao selecao_ponto;
+int selecao_poligono;
+ponto centro;
 
 // Configurações visuais
 static float cor_fundo[3] = {0.2f, 0.3f, 0.4f};
@@ -19,8 +21,9 @@ void initGL() {
 
   // Inicializar estrutura para curva
   pontos_init(&g_curva_atual, 100);
-  selecao.selecionado = 0;
-  selecao.indice = 0;
+  selecao_ponto.selecionado = 0;
+  selecao_ponto.indice = 0;
+  selecao_poligono = 0;
 
   printf("OpenGL inicializado com sucesso!\n");
 }
@@ -96,6 +99,29 @@ void AlteraTamanhoJanela(int w, int h) {
 
   glMatrixMode(GL_MODELVIEW);
 }
+void desenhar_centro_poligono() {
+  if (g_clicks.quantidade_atual < 2)
+    return;
+
+  // Usar função robusta da geometria.c
+  calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
+
+  // Desenhar cruz no centro
+  glColor3f(1.0f, 1.0f, 0.0f); // Magenta
+  glLineWidth(3.0f);
+
+  glBegin(GL_LINES);
+  glVertex2f(centro.x - 10, centro.y);
+  glVertex2f(centro.x + 10, centro.y);
+  glVertex2f(centro.x, centro.y - 10);
+  glVertex2f(centro.x, centro.y + 10);
+  glEnd();
+
+  glPointSize(8.0f);
+  glBegin(GL_POINTS);
+  glVertex2f(centro.x, centro.y);
+  glEnd();
+}
 
 void desenhar_conteudo_principal() {
   // Desenhar pontos de controle
@@ -116,6 +142,7 @@ void desenhar_conteudo_principal() {
     }
     glEnd();
   }
+  desenhar_centro_poligono();
   desenhar_curva_atual();
 }
 
@@ -201,18 +228,28 @@ void processar_clique_desenho(int x, int y) {
     glutPostRedisplay();
     break;
   case MODO_SELECIONAR_PONTO:
-    for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-      ponto mouse;
-      mouse.x = x;
-      mouse.y = y;
-      if (calcula_distancia(mouse, g_clicks.data[i]) < 3) {
-        selecao.selecionado = 1;
-        selecao.indice = i;
+    if (g_clicks.quantidade_atual >= 1) {
+      for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+        ponto mouse;
+        mouse.x = x;
+        mouse.y = y;
+        if (calcula_distancia(mouse, g_clicks.data[i]) < 3) {
+          selecao_ponto.selecionado = 1;
+          selecao_ponto.indice = i;
+        }
       }
     }
     break;
   case MODO_SELECIONAR_POLIGONO:
-    break;
+    if (g_clicks.quantidade_atual >= 2) {
+      ponto mouse;
+      mouse.x = x;
+      mouse.y = y;
+      if ((calcula_distancia(centro,  mouse)) < 3){
+        selecao_poligono = 1;
+      }
+        break;
+    }
   }
 }
 // Resto das suas funções permanecem iguais...
@@ -229,7 +266,7 @@ int traduzCoordenadaY(int y) {
 void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
                                      int y) {
   int x_botao, y_botao, altura_botao, largura_botao, mudanca;
-  Criacao_ou_selecao criacao_ou_selecao;
+  Criacao_ou_selecao criacao_ou_selecao_ponto;
   Poligono poligono;
   Curva curva;
   Operacoes operacao;
@@ -241,7 +278,7 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
     y_botao = b->y;
     altura_botao = b->altura;
     largura_botao = b->largura;
-    criacao_ou_selecao = b->acao;
+    criacao_ou_selecao_ponto = b->acao;
     mudanca = 0;
     break;
   }
@@ -281,7 +318,7 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       y <= y_botao + altura_botao) {
     switch (mudanca) {
     case 0:
-      estado_atual.criacao_ou_selecao = criacao_ou_selecao;
+      estado_atual.criacao_ou_selecao = criacao_ou_selecao_ponto;
       if (estado_atual.criacao_ou_selecao == MODO_CRIAR_PONTO) {
         estado_atual.operacao = NENHUMA;
       }
@@ -305,6 +342,9 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       break;
     case 3:
       estado_atual.operacao = operacao;
+      if(operacao == ROTACAO){
+        rotacionar(&g_clicks, centro, 30.0);
+      }
       break;
     }
     glutPostRedisplay();
@@ -347,11 +387,15 @@ void onMouse(int button, int state, int x, int y) {
     }
   }
   if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-    if (selecao.selecionado) {
-      selecao.selecionado = 0;
-      selecao.indice = 0;
+    if (selecao_ponto.selecionado) {
+      selecao_ponto.selecionado = 0;
+      selecao_ponto.indice = 0;
+    }
+    if( selecao_poligono){
+      selecao_poligono = 0;
     }
   }
+  
 }
 
 void onMouseMove(int x, int y) {
@@ -396,9 +440,9 @@ void onMouseMove(int x, int y) {
 void onMotion(int x, int y) {
   x = traduzCoordenadaX(x);
   y = traduzCoordenadaY(y);
-  if (selecao.selecionado) {
-    if ((selecao.indice == 0 ||
-         selecao.indice == g_clicks.quantidade_atual - 1) &&
+  if (selecao_ponto.selecionado) {
+    if ((selecao_ponto.indice == 0 ||
+         selecao_ponto.indice == g_clicks.quantidade_atual - 1) &&
         estado_atual.poligono == MODO_POLIGONO_FECHADO &&
         g_clicks.quantidade_atual > 2) {
       g_clicks.data[0].x = x;
@@ -406,10 +450,14 @@ void onMotion(int x, int y) {
       g_clicks.data[g_clicks.quantidade_atual - 1].x = x;
       g_clicks.data[g_clicks.quantidade_atual - 1].y = y;
     } else {
-      g_clicks.data[selecao.indice].x = x;
-      g_clicks.data[selecao.indice].y = y;
+      g_clicks.data[selecao_ponto.indice].x = x;
+      g_clicks.data[selecao_ponto.indice].y = y;
     }
 
     glutPostRedisplay(); // Redesenhar se necessário
+  } else if(selecao_poligono){
+    translacao_com_mouse(&g_clicks,  centro, x, y);
+    glutPostRedisplay();
   }
+
 }
