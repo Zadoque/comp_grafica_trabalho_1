@@ -17,6 +17,7 @@
 // Variáveis globais
 extern Pontos g_clicks;
 extern Pontos g_curva_atual;  // Nova: para armazenar pontos da curva
+
 typedef struct {
       int indice;
       int selecionado;

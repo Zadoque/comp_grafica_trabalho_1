@@ -104,7 +104,7 @@ void desenhar_centro_poligono() {
     return;
 
   // Usar função robusta da geometria.c
-  calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
+  
 
   // Desenhar cruz no centro
   glColor3f(1.0f, 1.0f, 0.0f); // Magenta
@@ -224,7 +224,7 @@ void processar_clique_desenho(int x, int y) {
     } else {
       pontos_push(&g_clicks, (float)x, (float)y);
     }
-
+    calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
     glutPostRedisplay();
     break;
   case MODO_SELECIONAR_PONTO:
@@ -392,6 +392,7 @@ void onMouse(int button, int state, int x, int y) {
       selecao_ponto.indice = 0;
     }
     if( selecao_poligono){
+
       selecao_poligono = 0;
     }
   }
@@ -453,10 +454,11 @@ void onMotion(int x, int y) {
       g_clicks.data[selecao_ponto.indice].x = x;
       g_clicks.data[selecao_ponto.indice].y = y;
     }
-
+    calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
     glutPostRedisplay(); // Redesenhar se necessário
-  } else if(selecao_poligono){
+  } else if(selecao_poligono == 1 && estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO){
     translacao_com_mouse(&g_clicks,  centro, x, y);
+    calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
     glutPostRedisplay();
   }
 

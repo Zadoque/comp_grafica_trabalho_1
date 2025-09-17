@@ -23,8 +23,8 @@ typedef struct {
 } ponto;
 
 typedef struct {
-  size_t quantidade_atual;
-  size_t quantidade_max;
+  int quantidade_atual;
+  int quantidade_max;
   ponto *data;
 } Pontos;
 
