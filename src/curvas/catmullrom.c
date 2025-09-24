@@ -52,10 +52,7 @@ void gerar_curva_catmullrom(Pontos *pontos_controle, Pontos *curva_resultado) {
     for (int j = 0; j <= resolucao; j++) {
       float t = (float)(j + 0.000001) / (float)resolucao;
       ponto p = calcular_ponto_catmullrom(P0, P1, P2, P3, t);
-
       // Evitar duplicar pontos entre segmentos
-     
-
       pontos_push(curva_resultado, p.x, p.y);
     }
   }

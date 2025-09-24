@@ -5,7 +5,7 @@
 #include "menu.h"  
 
 
-void calcular_centro_medio(ponto *centro,Pontos* pontos, Poligono poligono);
+void calcular_centro_medio(ponto *centro,Pontos* pontos);
 
 void translacao_com_mouse(Pontos* pontos, ponto centro, int x_mouse, int y_mouse);
 void transladar_para_origem(Pontos *pontos, ponto centro);

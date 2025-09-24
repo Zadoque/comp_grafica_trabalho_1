@@ -24,6 +24,8 @@ void initGL() {
   selecao_ponto.selecionado = 0;
   selecao_ponto.indice = 0;
   selecao_poligono = 0;
+  centro.x = 0;
+  centro.y = 0;
 
   printf("OpenGL inicializado com sucesso!\n");
 }
@@ -31,9 +33,10 @@ void initGL() {
 void gerar_curva_selecionada() {
   if (g_clicks.quantidade_atual < 3)
     return;
+  int poligono = (estado_atual.poligono == MODO_POLIGONO_FECHADO) ? 1 : 0;
   switch (estado_atual.curva) {
   case MODO_CURVA_HERMITE:
-    gerar_curva_hermite(&g_clicks, &g_curva_atual);
+    gerar_curva_hermite(&g_clicks, &g_curva_atual, poligono);
     break;
 
   case MODO_CURVA_BEZIER:
@@ -131,16 +134,36 @@ void desenhar_conteudo_principal() {
     glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
   }
   glEnd();
+  glColor3f(0.0f, 1.0f, 0.0f); // Verde
+  glLineWidth(2.0f);
 
-  if (g_clicks.quantidade_atual >= 2) {
-    glColor3f(0.0f, 1.0f, 0.0f); // Verde
-    glLineWidth(2.0f);
-    glBegin(GL_LINE_STRIP);
-    for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-      glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+  switch (estado_atual.poligono) {
+  case MODO_POLIGONO_FECHADO:
+    if (g_clicks.quantidade_atual <= 2) {
+      glBegin(GL_LINE_STRIP);
+      for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+      }
+      glEnd();
+    } else {
+      glBegin(GL_LINE_LOOP);
+      for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+      }
+      glEnd();
     }
-    glEnd();
+    break;
+  case MODO_POLIGONO_ABERTO:
+    if (g_clicks.quantidade_atual >= 2) {
+      glBegin(GL_LINE_STRIP);
+      for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+      }
+      glEnd();
+    }
+    break;
   }
+
   desenhar_centro_poligono();
   desenhar_curva_atual();
 }
@@ -197,33 +220,11 @@ void display() {
 void processar_clique_desenho(int x, int y) {
   x = traduzCoordenadaX(x);
   y = traduzCoordenadaY(y);
-  int quantidade_atual =
-      g_clicks.quantidade_atual ? g_clicks.quantidade_atual : 1;
 
   switch (estado_atual.criacao_ou_selecao) {
   case MODO_CRIAR_PONTO:
-    if (estado_atual.poligono == MODO_POLIGONO_FECHADO &&
-        g_clicks.quantidade_atual >= 2) {
-
-      if (g_clicks.data[0].x == g_clicks.data[quantidade_atual - 1].x &&
-          g_clicks.data[0].y == g_clicks.data[quantidade_atual - 1].y) {
-        g_clicks.data[quantidade_atual - 1].x = (float)x;
-        g_clicks.data[quantidade_atual - 1].y = (float)y;
-        pontos_push(&g_clicks, g_clicks.data[0].x, g_clicks.data[0].y);
-      } else {
-        pontos_push(&g_clicks, (float)x, (float)y);
-        pontos_push(&g_clicks, g_clicks.data[0].x, g_clicks.data[0].y);
-      }
-    } else if (quantidade_atual > 2 &&
-               estado_atual.poligono == MODO_POLIGONO_ABERTO &&
-               g_clicks.data[0].x == g_clicks.data[quantidade_atual - 1].x &&
-               g_clicks.data[0].y == g_clicks.data[quantidade_atual - 1].y) {
-      g_clicks.data[quantidade_atual - 1].x = (float)x;
-      g_clicks.data[quantidade_atual - 1].y = (float)y;
-    } else {
-      pontos_push(&g_clicks, (float)x, (float)y);
-    }
-    calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
+    pontos_push(&g_clicks, (float)x, (float)y);
+    calcular_centro_medio(&centro, &g_clicks);
     glutPostRedisplay();
     break;
   case MODO_SELECIONAR_PONTO:
@@ -251,7 +252,6 @@ void processar_clique_desenho(int x, int y) {
     }
   }
 }
-// Resto das suas funções permanecem iguais...
 int traduzCoordenadaX(int x) {
   int largura = (glutGet(GLUT_WINDOW_WIDTH) - menu_largura) / 2;
   return (x < largura) ? (largura - x) * (-1) : x - largura;
@@ -323,16 +323,6 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       }
       break;
     case 1:
-      if (estado_atual.poligono == MODO_POLIGONO_FECHADO &&
-          poligono == MODO_POLIGONO_ABERTO && g_clicks.quantidade_atual > 2) {
-        g_clicks.quantidade_atual--;
-        g_clicks.data[g_clicks.quantidade_atual].x = 0.0;
-        g_clicks.data[g_clicks.quantidade_atual].y = 0.0;
-      } else if (estado_atual.poligono == MODO_POLIGONO_ABERTO &&
-                 poligono == MODO_POLIGONO_FECHADO &&
-                 g_clicks.quantidade_atual > 2) {
-        pontos_push(&g_clicks, g_clicks.data[0].x, g_clicks.data[0].y);
-      }
       estado_atual.poligono = poligono;
       break;
     case 2:
@@ -394,17 +384,17 @@ void onMouse(int button, int state, int x, int y) {
       }
     }
   }
-  if((button == 3 || button == 4) && estado_atual.operacao == ESCALA){
+  if ((button == 3 || button == 4) && estado_atual.operacao == ESCALA) {
     ponto mouse;
     mouse.x = traduzCoordenadaX(x);
     mouse.y = traduzCoordenadaY(y);
-    if(calcula_distancia(mouse, centro) < 3){
-      if(button == 3){
+    if (calcula_distancia(mouse, centro) < 3) {
+      if (button == 3) {
         aumentar_escala(&g_clicks, centro);
       } else {
         diminuir_escala(&g_clicks, centro);
       }
-      calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
+      calcular_centro_medio(&centro, &g_clicks);
       glutPostRedisplay();
     }
   }
@@ -453,24 +443,14 @@ void onMotion(int x, int y) {
   x = traduzCoordenadaX(x);
   y = traduzCoordenadaY(y);
   if (selecao_ponto.selecionado) {
-    if ((selecao_ponto.indice == 0 ||
-         selecao_ponto.indice == g_clicks.quantidade_atual - 1) &&
-        estado_atual.poligono == MODO_POLIGONO_FECHADO &&
-        g_clicks.quantidade_atual > 2) {
-      g_clicks.data[0].x = x;
-      g_clicks.data[0].y = y;
-      g_clicks.data[g_clicks.quantidade_atual - 1].x = x;
-      g_clicks.data[g_clicks.quantidade_atual - 1].y = y;
-    } else {
-      g_clicks.data[selecao_ponto.indice].x = x;
-      g_clicks.data[selecao_ponto.indice].y = y;
-    }
-    calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
+    g_clicks.data[selecao_ponto.indice].x = x;
+    g_clicks.data[selecao_ponto.indice].y = y;
+    calcular_centro_medio(&centro, &g_clicks);
     glutPostRedisplay(); // Redesenhar se necessário
   } else if (selecao_poligono == 1 &&
              estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO) {
     translacao_com_mouse(&g_clicks, centro, x, y);
-    calcular_centro_medio(&centro, &g_clicks, estado_atual.poligono);
+    calcular_centro_medio(&centro, &g_clicks);
     glutPostRedisplay();
   }
 }

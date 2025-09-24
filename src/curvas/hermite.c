@@ -42,7 +42,7 @@ void calcular_tangentes_hermite(ponto P1, ponto P2, ponto P3, ponto P4,
   T2->y = P4.y - P3.y;
 }
 
-void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado) {
+void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado, int poligono) {
   if (pontos_controle->quantidade_atual <= 2)
     return;
 
@@ -70,14 +70,5 @@ void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado) {
     }
     i++;
   }
-  P0 = pontos_controle->data[i];
-  P1 = pontos_controle->data[i + 1];
-  P2 = pontos_controle->data[i + 2];
-  calcular_tangentes_hermite(P0, P1, P1, P2, &T1, &T2);
-  resolucao = (int)(calcula_distancia(P0, P1)) * 5;
-  for (int j = 0; j <= resolucao; j++) {
-    float t = ((float)(j) + 0.0001) / (float)(resolucao);
-    ponto p = calcular_ponto_hermite(P0, P1, T1, T2, t);
-    pontos_push(curva_resultado, p.x, p.y);
-  }
+  
 }
