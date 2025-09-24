@@ -1,12 +1,13 @@
 #include "../includes/operacoes.h"
 #include <math.h>
-
+//#include <stdio.h>
 void calcular_centro_medio(ponto *centro, Pontos *pontos) {
+  centro->x = 0;
+  centro->y = 0;
   for (int i = 0; i < (int)(pontos->quantidade_atual); i++) {
     centro->x += pontos->data[i].x;
     centro->y += pontos->data[i].y;
   }
-
   centro->x /= (float)pontos->quantidade_atual;
   centro->y /= (float)pontos->quantidade_atual;
 }
