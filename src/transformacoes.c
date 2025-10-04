@@ -1,4 +1,4 @@
-#include "../includes/operacoes.h"
+#include "../includes/transformacoes.h"
 #include <math.h>
 //#include <stdio.h>
 void calcular_centro_medio(ponto *centro, Pontos *pontos) {

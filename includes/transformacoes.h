@@ -1,5 +1,5 @@
-#ifndef GEOMETRIA_H
-#define GEOMETRIA_H
+#ifndef TRANSFORMACOES_H
+#define TRANSFORMACOES_H
 
 #include "pontos.h"
 #include "menu.h"  

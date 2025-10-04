@@ -9,7 +9,7 @@
 #include "curvas/bezier.h"
 #include "curvas/bspline.h"
 #include "curvas/catmullrom.h"
-#include "operacoes.h"  
+#include "transformacoes.h"  
 
 
 

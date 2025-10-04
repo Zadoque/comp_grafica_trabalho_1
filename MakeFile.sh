@@ -29,7 +29,7 @@ SRC_FILES=(
   src/pontos.c
   src/opengl.c
   src/menu.c
-  src/operacoes.c
+  src/transformacoes.c
   src/curvas/hermite.c
   src/curvas/bezier.c
   src/curvas/bspline.c
