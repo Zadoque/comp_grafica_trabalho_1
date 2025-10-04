@@ -41,7 +41,7 @@ void gerar_curva_selecionada() {
 
   case MODO_CURVA_BEZIER:
     if (g_clicks.quantidade_atual >= 4) {
-      gerar_curva_bezier(&g_clicks, &g_curva_atual);
+      gerar_curva_bezier(&g_clicks, &g_curva_atual, poligono);
     }
     break;
 
@@ -60,10 +60,7 @@ void gerar_curva_selecionada() {
 }
 
 void desenhar_curva_atual() {
-  if (!(g_clicks.quantidade_atual > 3 &&
-            estado_atual.curva != MODO_CURVA_HERMITE ||
-        estado_atual.curva == MODO_CURVA_HERMITE &&
-            g_clicks.quantidade_atual > 2))
+  if ((g_clicks.quantidade_atual < 4 ))
     return;
 
   // Definir cor da curva baseada no tipo
