@@ -22,10 +22,10 @@ ponto calcular_ponto_bezier(ponto P0, ponto P1, ponto P2, ponto P3, float t) {
   }
   // Aplicar aos pontos de controle
   ponto resultado;
-  resultado.x = coeficientes[0] * P0.x + coeficientes[1] * P1.x +
-                coeficientes[2] * P2.x + coeficientes[3] * P3.x;
-  resultado.y = coeficientes[0] * P0.y + coeficientes[1] * P1.y +
-                coeficientes[2] * P2.y + coeficientes[3] * P3.y;
+  resultado.point[0] = coeficientes[0] * P0.point[0] + coeficientes[1] * P1.point[0] +
+                coeficientes[2] * P2.point[0] + coeficientes[3] * P3.point[0];
+  resultado.point[1] = coeficientes[0] * P0.point[1] + coeficientes[1] * P1.point[1] +
+                coeficientes[2] * P2.point[1] + coeficientes[3] * P3.point[1];
   return resultado;
 }
 
@@ -51,7 +51,7 @@ void gerar_curva_bezier(Pontos *pontos_controle, Pontos *curva_resultado,
     for (int j = 0; j <= resolucao; j++) {
       float t = ((float)j + 0.0001) / (float)resolucao;
       p = calcular_ponto_bezier(P0, P1, P2, P3, t);
-      pontos_push(curva_resultado, p.x, p.y);
+      pontos_push(curva_resultado, p);
     }
   }
   if (poligono && pontos_controle->quantidade_atual % 3 == 0) { // % 3 garante que acurva fechada será unida no mesmo ponot, P0
@@ -69,7 +69,7 @@ void gerar_curva_bezier(Pontos *pontos_controle, Pontos *curva_resultado,
       for (int j = 0; j <= resolucao; j++) {
         float t = ((float)(j) + 0.0001) / (float)(resolucao);
         p = calcular_ponto_bezier(P0, P1, P2, P3, t);
-        pontos_push(curva_resultado, p.x, p.y);
+        pontos_push(curva_resultado, p);
       }
     }
 }

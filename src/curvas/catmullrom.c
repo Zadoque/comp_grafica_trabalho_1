@@ -26,10 +26,10 @@ ponto calcular_ponto_catmullrom(ponto P0, ponto P1, ponto P2, ponto P3,
 
   // Aplicar aos pontos de controle
   ponto resultado;
-  resultado.x = coeficientes[0] * P0.x + coeficientes[1] * P1.x +
-                coeficientes[2] * P2.x + coeficientes[3] * P3.x;
-  resultado.y = coeficientes[0] * P0.y + coeficientes[1] * P1.y +
-                coeficientes[2] * P2.y + coeficientes[3] * P3.y;
+  resultado.point[0] = coeficientes[0] * P0.point[0] + coeficientes[1] * P1.point[0] +
+                coeficientes[2] * P2.point[0] + coeficientes[3] * P3.point[0];
+  resultado.point[1] = coeficientes[0] * P0.point[1] + coeficientes[1] * P1.point[1] +
+                coeficientes[2] * P2.point[1] + coeficientes[3] * P3.point[1];
 
   return resultado;
 }
@@ -53,36 +53,14 @@ void gerar_curva_catmullrom(Pontos *pontos_controle, Pontos *curva_resultado) {
       float t = (float)(j + 0.000001) / (float)resolucao;
       ponto p = calcular_ponto_catmullrom(P0, P1, P2, P3, t);
       // Evitar duplicar pontos entre segmentos
-      pontos_push(curva_resultado, p.x, p.y);
+      pontos_push(curva_resultado, p);
     }
   }
   
-  if ((pontos_controle->data[0].x ==
-       pontos_controle->data[pontos_controle->quantidade_atual - 1].x) &&
-      pontos_controle->data[0].y ==
-          pontos_controle->data[pontos_controle->quantidade_atual - 1].y) {
-    for (int i = 0; i < 3; i++) {
-      ponto P0 =
-          pontos_controle->data[(pontos_controle->quantidade_atual - 3 + i) %
-                                pontos_controle->quantidade_atual];
-      ponto P1 =
-          pontos_controle->data[(pontos_controle->quantidade_atual - 2 + i) %
-                                pontos_controle->quantidade_atual];
-      ponto P2 =
-          pontos_controle->data[(pontos_controle->quantidade_atual - 1 + i) %
-                                pontos_controle->quantidade_atual];
-      ponto P3 = pontos_controle->data[(pontos_controle->quantidade_atual + i) %
-                                       pontos_controle->quantidade_atual];
-      int resolucao = (int)(calcula_distancia(P1, P2)) * 5;
-      // Gerar pontos do segmento
-      for (int j = 0; j <= resolucao; j++) {
-        float t = (float)(j + 0.00001) / (float)resolucao;
-        ponto p = calcular_ponto_catmullrom(P0, P1, P2, P3, t);
-        pontos_push(curva_resultado, p.x, p.y);
-      }
-    }
+  
+    
     //printf("Curva Catmull-Rom gerada com %zu pontos\n",
           // curva_resultado->quantidade_atual);
-  }
+  
            
 }

@@ -29,6 +29,7 @@ SRC_FILES=(
   src/pontos.c
   src/opengl.c
   src/menu.c
+  src/matriz.c
   src/transformacoes.c
   src/curvas/hermite.c
   src/curvas/bezier.c
@@ -104,15 +105,17 @@ done
 echo -e "${BLUE}Total de objetos compilados: ${FOUND_OBJECTS}/${#EXPECTED_FILES[@]}${NC}"
 
 # Linkar e gerar executável
+# Linkar e gerar executável
 echo -e "${BLUE}Linkando executável...${NC}"
 if gcc obj/*.o -lGL -lGLU -lglut -lm -o bin/$PROJECT_NAME 2>/dev/null; then
     echo -e "${GREEN}Linkagem concluída com sucesso!${NC}"
 else
     echo -e "${RED}Erro ao linkar o executável!${NC}"
     echo -e "${RED}Detalhes do erro:${NC}"
-    gcc obj/*.o -lGL -lGLU -lglut -o bin/$PROJECT_NAME
+    gcc obj/*.o -lGL -lGLU -lglut -lm -o bin/$PROJECT_NAME
     exit 1
 fi
+
 
 echo -e "${GREEN}╔════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║     Compilação Bem Sucedida!       ║${NC}"

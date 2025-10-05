@@ -25,15 +25,15 @@ ponto calcular_ponto_bspline(ponto P0, ponto P1, ponto P2, ponto P3, float t) {
 
   // Aplicar aos pontos de controle
   ponto resultado;
-  resultado.x = coeficientes[0] * P0.x + coeficientes[1] * P1.x +
-                coeficientes[2] * P2.x + coeficientes[3] * P3.x;
-  resultado.y = coeficientes[0] * P0.y + coeficientes[1] * P1.y +
-                coeficientes[2] * P2.y + coeficientes[3] * P3.y;
+  resultado.point[0] = coeficientes[0] * P0.point[0] + coeficientes[1] * P1.point[0] +
+                coeficientes[2] * P2.point[0] + coeficientes[3] * P3.point[0];
+  resultado.point[1] = coeficientes[0] * P0.point[1] + coeficientes[1] * P1.point[1] +
+                coeficientes[2] * P2.point[1] + coeficientes[3] * P3.point[1];
 
   return resultado;
 }
 
-void gerar_curva_bspline(Pontos *pontos_controle, Pontos *curva_resultado) {
+void gerar_curva_bspline(Pontos *pontos_controle, Pontos *curva_resultado, int poligono) {
   if (pontos_controle->quantidade_atual < 4)
     return;
   curva_resultado->quantidade_atual = 0;
@@ -49,13 +49,10 @@ void gerar_curva_bspline(Pontos *pontos_controle, Pontos *curva_resultado) {
     for (int j = 0; j <= resolucao; j++) {
       float t = (float)(j + 0.00001) / (float)resolucao;
       ponto p = calcular_ponto_bspline(P0, P1, P2, P3, t);
-      pontos_push(curva_resultado, p.x, p.y);
+      pontos_push(curva_resultado, p);
     }
   }
-  if ((pontos_controle->data[0].x ==
-       pontos_controle->data[pontos_controle->quantidade_atual - 1].x) &&
-      pontos_controle->data[0].y ==
-          pontos_controle->data[pontos_controle->quantidade_atual - 1].y) {
+  if (poligono) {
     for (int i = 0; i < 3; i++) {
       ponto P0 =
           pontos_controle->data[(pontos_controle->quantidade_atual - 3 + i) %
@@ -73,7 +70,7 @@ void gerar_curva_bspline(Pontos *pontos_controle, Pontos *curva_resultado) {
       for (int j = 0; j <= resolucao; j++) {
         float t = (float)(j + 0.00001) / (float)resolucao;
         ponto p = calcular_ponto_bspline(P0, P1, P2, P3, t);
-        pontos_push(curva_resultado, p.x, p.y);
+        pontos_push(curva_resultado, p);
       }
     }
   }

@@ -27,19 +27,19 @@ ponto calcular_ponto_hermite(ponto P1, ponto P2, ponto T1, ponto T2, float t) {
 
   // Aplicar aos pontos de controle: P(t) = c₀P₁ + c₁P₂ + c₂T₁ + c₃T₂
   ponto resultado;
-  resultado.x = coeficientes[0] * P1.x + coeficientes[1] * P2.x +
-                coeficientes[2] * T1.x + coeficientes[3] * T2.x;
-  resultado.y = coeficientes[0] * P1.y + coeficientes[1] * P2.y +
-                coeficientes[2] * T1.y + coeficientes[3] * T2.y;
+  resultado.point[0] = coeficientes[0] * P1.point[0] + coeficientes[1] * P2.point[0] +
+                coeficientes[2] * T1.point[0] + coeficientes[3] * T2.point[0];
+  resultado.point[1] = coeficientes[0] * P1.point[1] + coeficientes[1] * P2.point[1] +
+                coeficientes[2] * T1.point[1] + coeficientes[3] * T2.point[1];
 
   return resultado;
 }
 void calcular_tangentes_hermite(ponto P1, ponto P2, ponto P3, ponto P4,
                                 ponto *T1, ponto *T2) {
-  T1->x = P2.x - P1.x;
-  T1->y = P2.y - P1.y;
-  T2->x = P4.x - P3.x;
-  T2->y = P4.y - P3.y;
+  T1->point[0] = P2.point[0] - P1.point[1];
+  T1->point[1] = P2.point[1] - P1.point[1];
+  T2->point[0] = P4.point[0] - P3.point[0];
+  T2->point[1] = P4.point[1] - P3.point[1];
 }
 
 void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado,
@@ -66,7 +66,7 @@ void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado,
     for (int j = 0; j <= resolucao; j++) {
       float t = ((float)(j) + 0.0001) / (float)(resolucao);
       p = calcular_ponto_hermite(P0, P1, T1, T2, t);
-      pontos_push(curva_resultado, p.x, p.y);
+      pontos_push(curva_resultado, p);
     }
   }
   if (poligono) {
@@ -87,7 +87,7 @@ void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado,
       for (int j = 0; j <= resolucao; j++) {
         float t = ((float)(j) + 0.0001) / (float)(resolucao);
         p = calcular_ponto_hermite(P0, P1, T1, T2, t);
-        pontos_push(curva_resultado, p.x, p.y);
+        pontos_push(curva_resultado, p);
       }
     }
   }

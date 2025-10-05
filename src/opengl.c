@@ -47,7 +47,7 @@ void gerar_curva_selecionada() {
 
   case MODO_CURVA_BSPLINE:
     if (g_clicks.quantidade_atual >= 4) {
-      gerar_curva_bspline(&g_clicks, &g_curva_atual);
+      gerar_curva_bspline(&g_clicks, &g_curva_atual, poligono);
     }
     break;
 
@@ -60,7 +60,7 @@ void gerar_curva_selecionada() {
 }
 
 void desenhar_curva_atual() {
-  if ((g_clicks.quantidade_atual < 4 ))
+  if ((g_clicks.quantidade_atual < 4))
     return;
 
   // Definir cor da curva baseada no tipo
@@ -217,20 +217,20 @@ void display() {
 void processar_clique_desenho(int x, int y) {
   x = traduzCoordenadaX(x);
   y = traduzCoordenadaY(y);
-
+  ponto mouse;
+  mouse.point[0] = x;
+  mouse.point[1] = y;
+  mouse.point[2] = 1;
   switch (estado_atual.criacao_ou_selecao) {
   case MODO_CRIAR_PONTO:
-    pontos_push(&g_clicks, (float)x, (float)y);
+    pontos_push(&g_clicks, mouse);
     calcular_centro_medio(&centro, &g_clicks);
     glutPostRedisplay();
     break;
   case MODO_SELECIONAR_PONTO:
     if (g_clicks.quantidade_atual >= 1) {
       for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-        ponto mouse;
-        mouse.point[0] = x;
-        mouse.point[1] = y;
-        if (calcula_distancia(mouse, g_clicks.data[i]) < 3) {
+        if (calcula_distancia(mouse, g_clicks.data[i]) < 6) {
           selecao_ponto.selecionado = 1;
           selecao_ponto.indice = i;
         }
@@ -239,10 +239,7 @@ void processar_clique_desenho(int x, int y) {
     break;
   case MODO_SELECIONAR_POLIGONO:
     if (g_clicks.quantidade_atual >= 2) {
-      ponto mouse;
-      mouse.point[0] = x;
-      mouse.point[1] = y;
-      if ((calcula_distancia(centro, mouse)) < 3) {
+      if ((calcula_distancia(centro, mouse)) < 6) {
         selecao_poligono = 1;
       }
       break;
