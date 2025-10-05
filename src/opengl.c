@@ -89,20 +89,20 @@ void desenhar_curva_atual() {
 
 // Suas funções existentes...
 void AlteraTamanhoJanela(int w, int h) {
-    // Recalcular dimensões do menu
-    atualizar_dimensoes_menu();
-    
-    glViewport(0, 0, w, h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+  // Recalcular dimensões do menu
+  atualizar_dimensoes_menu();
 
-    int meio_x = (w - menu_largura) / 2;
-    int meio_y = h / 2;
-    gluOrtho2D(-meio_x, meio_x, -meio_y, meio_y);
+  glViewport(0, 0, w, h);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
 
-    glMatrixMode(GL_MODELVIEW);
-    
-    glutPostRedisplay(); // Forçar redesenho
+  int meio_x = (w - menu_largura) / 2;
+  int meio_y = h / 2;
+  gluOrtho2D(-meio_x, meio_x, -meio_y, meio_y);
+
+  glMatrixMode(GL_MODELVIEW);
+
+  glutPostRedisplay(); // Forçar redesenho
 }
 
 void desenhar_centro_poligono() {
@@ -244,10 +244,34 @@ void processar_clique_desenho(int x, int y) {
     }
     break;
   case MODO_SELECIONAR_POLIGONO:
-    if (g_clicks.quantidade_atual >= 2) {
-      if ((calcula_distancia(centro, mouse)) < 6) {
-        selecao_poligono = 1;
+    switch (estado_atual.operacao) {
+    case TRANSLACAO:
+      if (g_clicks.quantidade_atual >= 2) {
+        if ((calcula_distancia(centro, mouse)) < 6) {
+          selecao_poligono = 1;
+          break;
+        }
+        for (int i = 0; i < g_clicks.quantidade_atual; i++) {
+          if (calcula_distancia(mouse, g_clicks.data[i]) < 6) {
+            selecao_poligono = 2;
+            selecao_ponto.indice = i;
+            break;
+          }
+        }
+        break;
       }
+      break;
+    case ROTACAO:
+      printf("rotacao agora");
+      break;
+
+    case ESCALA:
+      printf("escala agora");
+      break;
+    case SHEAR:
+      printf("Shear agora");
+      break;
+    case NENHUMA:
       break;
     }
   }
@@ -450,6 +474,11 @@ void onMotion(int x, int y) {
   } else if (selecao_poligono == 1 &&
              estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO) {
     translacao_com_mouse(&g_clicks, centro, x, y);
+    calcular_centro_medio(&centro, &g_clicks);
+    glutPostRedisplay();
+  } else if (selecao_poligono == 2 &&
+             estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO) {
+    translacao_com_mouse(&g_clicks, g_clicks.data[selecao_ponto.indice], x, y);
     calcular_centro_medio(&centro, &g_clicks);
     glutPostRedisplay();
   }

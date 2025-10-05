@@ -10,7 +10,7 @@ typedef enum {
   MODO_SELECIONAR_POLIGONO,
 } Criacao_ou_selecao;
 
-typedef enum { TRANSLACAO, ROTACAO, ESCALA, ESPALHADO, SHEAR, NENHUMA } Operacoes;
+typedef enum { TRANSLACAO, ROTACAO, ESCALA, SHEAR, NENHUMA } Operacoes;
 
 typedef enum { MODO_POLIGONO_ABERTO, MODO_POLIGONO_FECHADO } Poligono;
 
