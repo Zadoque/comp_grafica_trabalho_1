@@ -71,6 +71,7 @@ extern BotoesOperacoes botoes_operacoes[4];
 extern int menu_largura;
 
 // Funções do menu
+void atualizar_dimensoes_menu();
 void inicializar_menu();
 void desenhar_texto(float x, float y, void *font, char *texto);
 void desenhar_botao_generico(void* botao, TipoBotao tipo, int indice);

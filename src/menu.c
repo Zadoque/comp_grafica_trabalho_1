@@ -1,9 +1,7 @@
 #include "./../includes/menu.h"
 #include <GL/glut.h>
-// #include <stdio.h>
 #include <string.h>
 
-// Implementar todas as funções do menu que te mostrei antes
 EstadoAplicacao estado_atual = {MODO_CRIAR_PONTO, MODO_POLIGONO_ABERTO,
                                 MODO_CURVA_HERMITE, NENHUMA};
 
@@ -11,99 +9,128 @@ int menu_largura = 200;
 Botoes botoes;
 BotoesOperacoes botoes_operacoes[4];
 
-void inicializar_menu() {
-  // Definir os botões (posição relativa ao menu)
-  strcpy(botoes.botoes1[0].texto, "Criar Ponto");
-  botoes.botoes1[0].x = 10;
-  botoes.botoes1[0].y = 50;
-  botoes.botoes1[0].largura = 180;
-  botoes.botoes1[0].altura = 40;
-  botoes.botoes1[0].acao = MODO_CRIAR_PONTO;
+// Função para calcular dimensões dinâmicas
+void atualizar_dimensoes_menu() {
+    int altura_janela = glutGet(GLUT_WINDOW_HEIGHT);
+    int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
+    
+    // Menu ocupa 15% da largura ou mínimo 150px
+    menu_largura = (largura_janela * 0.15 < 150) ? 150 : largura_janela * 0.15;
+    
+    // Margens e espaçamentos proporcionais
+    int margem = menu_largura * 0.05;
+    int largura_botao = menu_largura - (2 * margem);
+    int altura_botao = altura_janela * 0.05; // 5% da altura
+    int espacamento = altura_janela * 0.01; // 1% da altura
+    
+    // === BOTÕES DE CRIAÇÃO/SELEÇÃO (Grupo 1) ===
+    int y_inicio_grupo1 = altura_janela * 0.05;
+    
+    strcpy(botoes.botoes1[0].texto, "Criar Ponto");
+    botoes.botoes1[0].x = margem;
+    botoes.botoes1[0].y = y_inicio_grupo1;
+    botoes.botoes1[0].largura = largura_botao;
+    botoes.botoes1[0].altura = altura_botao;
+    botoes.botoes1[0].acao = MODO_CRIAR_PONTO;
 
-  strcpy(botoes.botoes1[1].texto, "Selecionar vertice");
-  botoes.botoes1[1].x = 10;
-  botoes.botoes1[1].y = 100;
-  botoes.botoes1[1].largura = 180;
-  botoes.botoes1[1].altura = 40;
-  botoes.botoes1[1].acao = MODO_SELECIONAR_PONTO;
+    strcpy(botoes.botoes1[1].texto, "Selecionar vertice");
+    botoes.botoes1[1].x = margem;
+    botoes.botoes1[1].y = y_inicio_grupo1 + (altura_botao + espacamento);
+    botoes.botoes1[1].largura = largura_botao;
+    botoes.botoes1[1].altura = altura_botao;
+    botoes.botoes1[1].acao = MODO_SELECIONAR_PONTO;
 
-  strcpy(botoes.botoes1[2].texto, "Operar Poligono");
-  botoes.botoes1[2].x = 10;
-  botoes.botoes1[2].y = 150;
-  botoes.botoes1[2].largura = 180;
-  botoes.botoes1[2].altura = 40;
-  botoes.botoes1[2].acao = MODO_SELECIONAR_POLIGONO;
+    strcpy(botoes.botoes1[2].texto, "Operar Poligono");
+    botoes.botoes1[2].x = margem;
+    botoes.botoes1[2].y = y_inicio_grupo1 + 2 * (altura_botao + espacamento);
+    botoes.botoes1[2].largura = largura_botao;
+    botoes.botoes1[2].altura = altura_botao;
+    botoes.botoes1[2].acao = MODO_SELECIONAR_POLIGONO;
 
-  strcpy(botoes.botoes2[0].texto, "Polígono Aberto");
-  botoes.botoes2[0].x = 10;
-  botoes.botoes2[0].y = 250;
-  botoes.botoes2[0].largura = 180;
-  botoes.botoes2[0].altura = 40;
-  botoes.botoes2[0].acao = MODO_POLIGONO_ABERTO;
+    // === BOTÕES DE POLÍGONO (Grupo 2) ===
+    int y_inicio_grupo2 = y_inicio_grupo1 + 3 * (altura_botao + espacamento) + altura_janela * 0.03;
+    
+    strcpy(botoes.botoes2[0].texto, "Polígono Aberto");
+    botoes.botoes2[0].x = margem;
+    botoes.botoes2[0].y = y_inicio_grupo2;
+    botoes.botoes2[0].largura = largura_botao;
+    botoes.botoes2[0].altura = altura_botao;
+    botoes.botoes2[0].acao = MODO_POLIGONO_ABERTO;
 
-  strcpy(botoes.botoes2[1].texto, "Polígono Fechado");
-  botoes.botoes2[1].x = 10;
-  botoes.botoes2[1].y = 300;
-  botoes.botoes2[1].largura = 180;
-  botoes.botoes2[1].altura = 40;
-  botoes.botoes2[1].acao = MODO_POLIGONO_FECHADO;
+    strcpy(botoes.botoes2[1].texto, "Polígono Fechado");
+    botoes.botoes2[1].x = margem;
+    botoes.botoes2[1].y = y_inicio_grupo2 + (altura_botao + espacamento);
+    botoes.botoes2[1].largura = largura_botao;
+    botoes.botoes2[1].altura = altura_botao;
+    botoes.botoes2[1].acao = MODO_POLIGONO_FECHADO;
 
-  strcpy(botoes.botoes3[0].texto, "Hermite");
-  botoes.botoes3[0].x = 10;
-  botoes.botoes3[0].y = 400;
-  botoes.botoes3[0].largura = 180;
-  botoes.botoes3[0].altura = 40;
-  botoes.botoes3[0].acao = MODO_CURVA_HERMITE;
+    // === BOTÕES DE CURVA (Grupo 3) ===
+    int y_inicio_grupo3 = y_inicio_grupo2 + 2 * (altura_botao + espacamento) + altura_janela * 0.03;
+    
+    strcpy(botoes.botoes3[0].texto, "Hermite");
+    botoes.botoes3[0].x = margem;
+    botoes.botoes3[0].y = y_inicio_grupo3;
+    botoes.botoes3[0].largura = largura_botao;
+    botoes.botoes3[0].altura = altura_botao;
+    botoes.botoes3[0].acao = MODO_CURVA_HERMITE;
 
-  strcpy(botoes.botoes3[1].texto, "Catmull-Rom");
-  botoes.botoes3[1].x = 10;
-  botoes.botoes3[1].y = 450;
-  botoes.botoes3[1].largura = 180;
-  botoes.botoes3[1].altura = 40;
-  botoes.botoes3[1].acao = MODO_CURVA_CATMULLROM;
+    strcpy(botoes.botoes3[1].texto, "Catmull-Rom");
+    botoes.botoes3[1].x = margem;
+    botoes.botoes3[1].y = y_inicio_grupo3 + (altura_botao + espacamento);
+    botoes.botoes3[1].largura = largura_botao;
+    botoes.botoes3[1].altura = altura_botao;
+    botoes.botoes3[1].acao = MODO_CURVA_CATMULLROM;
 
-  strcpy(botoes.botoes3[2].texto, "B-Spline");
-  botoes.botoes3[2].x = 10;
-  botoes.botoes3[2].y = 500;
-  botoes.botoes3[2].largura = 180;
-  botoes.botoes3[2].altura = 40;
-  botoes.botoes3[2].acao = MODO_CURVA_BSPLINE;
+    strcpy(botoes.botoes3[2].texto, "B-Spline");
+    botoes.botoes3[2].x = margem;
+    botoes.botoes3[2].y = y_inicio_grupo3 + 2 * (altura_botao + espacamento);
+    botoes.botoes3[2].largura = largura_botao;
+    botoes.botoes3[2].altura = altura_botao;
+    botoes.botoes3[2].acao = MODO_CURVA_BSPLINE;
 
-  strcpy(botoes.botoes3[3].texto, "Bezier");
-  botoes.botoes3[3].x = 10;
-  botoes.botoes3[3].y = 550;
-  botoes.botoes3[3].largura = 180;
-  botoes.botoes3[3].altura = 40;
-  botoes.botoes3[3].acao = MODO_CURVA_BEZIER;
+    strcpy(botoes.botoes3[3].texto, "Bezier");
+    botoes.botoes3[3].x = margem;
+    botoes.botoes3[3].y = y_inicio_grupo3 + 3 * (altura_botao + espacamento);
+    botoes.botoes3[3].largura = largura_botao;
+    botoes.botoes3[3].altura = altura_botao;
+    botoes.botoes3[3].acao = MODO_CURVA_BEZIER;
 
-  strcpy(botoes_operacoes[0].texto, "Translacao");
-  botoes_operacoes[0].x = 10;
-  botoes_operacoes[0].y = 650;
-  botoes_operacoes[0].largura = 180;
-  botoes_operacoes[0].altura = 40;
-  botoes_operacoes[0].acao = TRANSLACAO;
+    // === BOTÕES DE OPERAÇÃO (Grupo 4) ===
+    int y_inicio_grupo4 = y_inicio_grupo3 + 4 * (altura_botao + espacamento) + altura_janela * 0.03;
+    
+    strcpy(botoes_operacoes[0].texto, "Translacao");
+    botoes_operacoes[0].x = margem;
+    botoes_operacoes[0].y = y_inicio_grupo4;
+    botoes_operacoes[0].largura = largura_botao;
+    botoes_operacoes[0].altura = altura_botao;
+    botoes_operacoes[0].acao = TRANSLACAO;
 
-  strcpy(botoes_operacoes[1].texto, "Rotacao");
-  botoes_operacoes[1].x = 10;
-  botoes_operacoes[1].y = 700;
-  botoes_operacoes[1].largura = 180;
-  botoes_operacoes[1].altura = 40;
-  botoes_operacoes[1].acao = ROTACAO;
+    strcpy(botoes_operacoes[1].texto, "Rotacao");
+    botoes_operacoes[1].x = margem;
+    botoes_operacoes[1].y = y_inicio_grupo4 + (altura_botao + espacamento);
+    botoes_operacoes[1].largura = largura_botao;
+    botoes_operacoes[1].altura = altura_botao;
+    botoes_operacoes[1].acao = ROTACAO;
 
-  strcpy(botoes_operacoes[2].texto, "Escala");
-  botoes_operacoes[2].x = 10;
-  botoes_operacoes[2].y = 750;
-  botoes_operacoes[2].largura = 180;
-  botoes_operacoes[2].altura = 40;
-  botoes_operacoes[2].acao = ESCALA;
+    strcpy(botoes_operacoes[2].texto, "Escala");
+    botoes_operacoes[2].x = margem;
+    botoes_operacoes[2].y = y_inicio_grupo4 + 2 * (altura_botao + espacamento);
+    botoes_operacoes[2].largura = largura_botao;
+    botoes_operacoes[2].altura = altura_botao;
+    botoes_operacoes[2].acao = ESCALA;
 
-  strcpy(botoes_operacoes[3].texto, "Shear");
-  botoes_operacoes[3].x = 10;
-  botoes_operacoes[3].y = 800;
-  botoes_operacoes[3].largura = 180;
-  botoes_operacoes[3].altura = 40;
-  botoes_operacoes[3].acao = SHEAR;
+    strcpy(botoes_operacoes[3].texto, "Shear");
+    botoes_operacoes[3].x = margem;
+    botoes_operacoes[3].y = y_inicio_grupo4 + 3 * (altura_botao + espacamento);
+    botoes_operacoes[3].largura = largura_botao;
+    botoes_operacoes[3].altura = altura_botao;
+    botoes_operacoes[3].acao = SHEAR;
 }
+
+void inicializar_menu() {
+    atualizar_dimensoes_menu();
+}
+
 
 void desenhar_texto(float x, float y, void *font, char *texto) {
   glRasterPos2f(x, y);

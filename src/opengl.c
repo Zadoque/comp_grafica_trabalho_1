@@ -89,16 +89,22 @@ void desenhar_curva_atual() {
 
 // Suas funções existentes...
 void AlteraTamanhoJanela(int w, int h) {
-  glViewport(0, 0, w, h);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
+    // Recalcular dimensões do menu
+    atualizar_dimensoes_menu();
+    
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
 
-  int meio_x = (w - 200) / 2;
-  int meio_y = h / 2;
-  gluOrtho2D(-meio_x, meio_x, -meio_y, meio_y);
+    int meio_x = (w - menu_largura) / 2;
+    int meio_y = h / 2;
+    gluOrtho2D(-meio_x, meio_x, -meio_y, meio_y);
 
-  glMatrixMode(GL_MODELVIEW);
+    glMatrixMode(GL_MODELVIEW);
+    
+    glutPostRedisplay(); // Forçar redesenho
 }
+
 void desenhar_centro_poligono() {
   if (g_clicks.quantidade_atual < 2)
     return;
