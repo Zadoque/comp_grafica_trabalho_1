@@ -24,9 +24,9 @@ void initGL() {
   selecao_ponto.selecionado = 0;
   selecao_ponto.indice = 0;
   selecao_poligono = 0;
-  centro.x = 0;
-  centro.y = 0;
-
+  centro.point[0] = 0;
+  centro.point[1] = 0;
+  centro.point[2] = 1;
   printf("OpenGL inicializado com sucesso!\n");
 }
 
@@ -82,7 +82,7 @@ void desenhar_curva_atual() {
   glLineWidth(3.0f);
   glBegin(GL_LINE_STRIP);
   for (int i = 0; i < g_curva_atual.quantidade_atual; i++) {
-    glVertex2f(g_curva_atual.data[i].x, g_curva_atual.data[i].y);
+    glVertex2f(g_curva_atual.data[i].point[0], g_curva_atual.data[i].point[1]);
   }
   glEnd();
 }
@@ -110,15 +110,15 @@ void desenhar_centro_poligono() {
   glLineWidth(3.0f);
 
   glBegin(GL_LINES);
-  glVertex2f(centro.x - 10, centro.y);
-  glVertex2f(centro.x + 10, centro.y);
-  glVertex2f(centro.x, centro.y - 10);
-  glVertex2f(centro.x, centro.y + 10);
+  glVertex2f(centro.point[0] - 10, centro.point[1]);
+  glVertex2f(centro.point[0] + 10, centro.point[1]);
+  glVertex2f(centro.point[0], centro.point[1] - 10);
+  glVertex2f(centro.point[0], centro.point[1] + 10);
   glEnd();
 
   glPointSize(8.0f);
   glBegin(GL_POINTS);
-  glVertex2f(centro.x, centro.y);
+  glVertex2f(centro.point[0], centro.point[1]);
   glEnd();
 }
 
@@ -128,7 +128,7 @@ void desenhar_conteudo_principal() {
   glPointSize(8.0f);
   glBegin(GL_POINTS);
   for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-    glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+    glVertex2f(g_clicks.data[i].point[0], g_clicks.data[i].point[1]);
   }
   glEnd();
   glColor3f(0.0f, 1.0f, 0.0f); // Verde
@@ -139,13 +139,13 @@ void desenhar_conteudo_principal() {
     if (g_clicks.quantidade_atual <= 2) {
       glBegin(GL_LINE_STRIP);
       for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+        glVertex2f(g_clicks.data[i].point[0], g_clicks.data[i].point[1]);
       }
       glEnd();
     } else {
       glBegin(GL_LINE_LOOP);
       for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+        glVertex2f(g_clicks.data[i].point[0], g_clicks.data[i].point[1]);
       }
       glEnd();
     }
@@ -154,7 +154,7 @@ void desenhar_conteudo_principal() {
     if (g_clicks.quantidade_atual >= 2) {
       glBegin(GL_LINE_STRIP);
       for (int i = 0; i < g_clicks.quantidade_atual; i++) {
-        glVertex2f(g_clicks.data[i].x, g_clicks.data[i].y);
+        glVertex2f(g_clicks.data[i].point[0], g_clicks.data[i].point[1]);
       }
       glEnd();
     }
@@ -228,8 +228,8 @@ void processar_clique_desenho(int x, int y) {
     if (g_clicks.quantidade_atual >= 1) {
       for (int i = 0; i < g_clicks.quantidade_atual; i++) {
         ponto mouse;
-        mouse.x = x;
-        mouse.y = y;
+        mouse.point[0] = x;
+        mouse.point[1] = y;
         if (calcula_distancia(mouse, g_clicks.data[i]) < 3) {
           selecao_ponto.selecionado = 1;
           selecao_ponto.indice = i;
@@ -240,8 +240,8 @@ void processar_clique_desenho(int x, int y) {
   case MODO_SELECIONAR_POLIGONO:
     if (g_clicks.quantidade_atual >= 2) {
       ponto mouse;
-      mouse.x = x;
-      mouse.y = y;
+      mouse.point[0] = x;
+      mouse.point[1] = y;
       if ((calcula_distancia(centro, mouse)) < 3) {
         selecao_poligono = 1;
       }
@@ -383,8 +383,8 @@ void onMouse(int button, int state, int x, int y) {
   }
   if ((button == 3 || button == 4) && estado_atual.operacao == ESCALA) {
     ponto mouse;
-    mouse.x = traduzCoordenadaX(x);
-    mouse.y = traduzCoordenadaY(y);
+    mouse.point[0] = traduzCoordenadaX(x);
+    mouse.point[1] = traduzCoordenadaY(y);
     if (calcula_distancia(mouse, centro) < 3) {
       if (button == 3) {
         aumentar_escala(&g_clicks, centro);
@@ -440,8 +440,8 @@ void onMotion(int x, int y) {
   x = traduzCoordenadaX(x);
   y = traduzCoordenadaY(y);
   if (selecao_ponto.selecionado) {
-    g_clicks.data[selecao_ponto.indice].x = x;
-    g_clicks.data[selecao_ponto.indice].y = y;
+    g_clicks.data[selecao_ponto.indice].point[0] = x;
+    g_clicks.data[selecao_ponto.indice].point[1] = y;
     calcular_centro_medio(&centro, &g_clicks);
     glutPostRedisplay(); // Redesenhar se necessário
   } else if (selecao_poligono == 1 &&

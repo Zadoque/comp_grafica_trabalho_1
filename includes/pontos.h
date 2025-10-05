@@ -18,8 +18,7 @@ typedef enum {
 } CurveType;
 
 typedef struct {
-  float x;
-  float y;
+  float point[3];
 } ponto;
 
 typedef struct {

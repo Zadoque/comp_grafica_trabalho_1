@@ -2,7 +2,8 @@
 #define TRANSFORMACOES_H
 
 #include "pontos.h"
-#include "menu.h"  
+#include "menu.h" 
+#include "matriz.h" 
 
 
 void calcular_centro_medio(ponto *centro,Pontos* pontos);
