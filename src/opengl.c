@@ -108,12 +108,9 @@ void AlteraTamanhoJanela(int w, int h) {
 void desenhar_centro_poligono() {
   if (g_clicks.quantidade_atual < 2)
     return;
-
-  // Usar função robusta da geometria.c
-
   // Desenhar cruz no centro
   glColor3f(1.0f, 1.0f, 0.0f); // Magenta
-  glLineWidth(3.0f);
+  glLineWidth(2.0f);
 
   glBegin(GL_LINES);
   glVertex2f(centro.point[0] - 10, centro.point[1]);
@@ -366,15 +363,15 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
 void processar_clique_menu(int x, int y) {
   int altura_janela = glutGet(GLUT_WINDOW_HEIGHT);
   y = altura_janela - y; // Inverter Y (GLUT usa origem superior esquerda)
-  if (y <= 190) {
+  if (y <= botoes.botoes1[2].y +  botoes.botoes1[2].altura + 2) {
     for (int i = 0; i < 3; i++) {
       verificar_clique_botao_generico(&botoes.botoes1[i], TIPO_BOTAO1, x, y);
     }
-  } else if (y <= 340) {
+  } else if (y <=  botoes.botoes2[1].y +  botoes.botoes2[1].altura + 22) {
     for (int i = 0; i < 2; i++) {
       verificar_clique_botao_generico(&botoes.botoes2[i], TIPO_BOTAO2, x, y);
     }
-  } else if (y <= 590) {
+  } else if (y <=  botoes.botoes3[3].y + botoes.botoes3[3].altura + 2) {
     for (int i = 0; i < 4; i++) {
       verificar_clique_botao_generico(&botoes.botoes3[i], TIPO_BOTAO3, x, y);
     }
