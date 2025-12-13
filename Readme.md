@@ -31,7 +31,7 @@ Desenvolvimento de uma aplicação gráfica interativa que permite:
 ### 🔄 **Transformações Geométricas**
 - [x] **Translação** - Mover objetos no plano
 - [x] **Rotação** - Rotacionar em torno de um ponto
-- [ ] **Escala** - Redimensionar objetos
+- [x] **Escala** - Redimensionar objetos
 - [ ] **Espelhamento** - Reflexão em eixos
 - [ ] **Shear** - Cisalhamento/inclinação
 
