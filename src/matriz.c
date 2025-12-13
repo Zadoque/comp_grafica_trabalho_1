@@ -87,8 +87,7 @@ float** CriarMatrizEscala(float Sx, float Sy) {
 }
 
 
-float** CriarMatrizRotacao(float angulo) {
-    float rad = angulo * M_PI / 180.0;  // Converte para radianos
+float** CriarMatrizRotacao(float rad) {
     float **MatrizR = (float **)malloc(3 * sizeof(float *));
     if (!MatrizR) {
         printf("erro ao alocar memória");

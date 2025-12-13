@@ -33,6 +33,11 @@ void pontos_push(Pontos *v, ponto p);
 void pontos_free(Pontos *v);
 void esvazia_points(Pontos *v);
 double raiz_quadrada_newton(double n);
+/**
+* Recebe dois pontos e retorna a distância entre eles como float
+* @param ponto P1 -> primeiro ponto
+* @param ponto P2 -> segundo ponto
+*/
 float calcula_distancia(ponto P1, ponto P2);
 
 #endif

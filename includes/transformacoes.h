@@ -12,7 +12,7 @@ void translacao_com_mouse(Pontos* pontos, ponto centro, int x_mouse, int y_mouse
 void transladar_para_origem(Pontos *pontos, ponto centro);
 void trasladar_de_volta(Pontos *pontos, ponto centro);
 
-void rotacionar(Pontos *pontos, ponto centro, float angulo_graus);
+void rotacionar_com_mouse(Pontos *pontos, ponto* centro, ponto mouse, int indice);
 
 void aumentar_escala(Pontos* pontos, ponto centro);
 

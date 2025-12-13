@@ -260,6 +260,14 @@ void processar_clique_desenho(int x, int y) {
       break;
     case ROTACAO:
       printf("rotacao agora");
+      if(g_clicks.quantidade_atual >= 2){
+        for(int i = 0; i < g_clicks.quantidade_atual; i ++){
+          if(calcula_distancia(mouse, g_clicks.data[i]) < 6){
+            selecao_poligono = 3;
+            selecao_ponto.indice = i;
+          }
+        }
+      }
       break;
 
     case ESCALA:
@@ -352,9 +360,6 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       break;
     case 3:
       estado_atual.operacao = operacao;
-      if (operacao == ROTACAO) {
-        rotacionar(&g_clicks, centro, 30.0);
-      }
       break;
     }
     glutPostRedisplay();
@@ -409,6 +414,7 @@ void onMouse(int button, int state, int x, int y) {
     ponto mouse;
     mouse.point[0] = traduzCoordenadaX(x);
     mouse.point[1] = traduzCoordenadaY(y);
+    mouse.point[2] = 1;
     if (calcula_distancia(mouse, centro) < 3) {
       if (button == 3) {
         aumentar_escala(&g_clicks, centro);
@@ -463,6 +469,9 @@ void onMouseMove(int x, int y) {
 void onMotion(int x, int y) {
   x = traduzCoordenadaX(x);
   y = traduzCoordenadaY(y);
+  ponto mouse;
+  mouse.point[0] = x;
+  mouse.point[1] = y;
   if (selecao_ponto.selecionado) {
     g_clicks.data[selecao_ponto.indice].point[0] = x;
     g_clicks.data[selecao_ponto.indice].point[1] = y;
@@ -478,5 +487,9 @@ void onMotion(int x, int y) {
     translacao_com_mouse(&g_clicks, g_clicks.data[selecao_ponto.indice], x, y);
     calcular_centro_medio(&centro, &g_clicks);
     glutPostRedisplay();
+  } else if(selecao_poligono == 3 &&
+            estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO){
+            rotacionar_com_mouse(&g_clicks, &centro, mouse, selecao_ponto.indice);
+            glutPostRedisplay();
   }
 }

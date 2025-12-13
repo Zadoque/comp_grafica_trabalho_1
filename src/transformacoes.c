@@ -22,17 +22,33 @@ void translacao_com_mouse(Pontos *pontos, ponto centro, int x_mouse,
 }
 
 
-void rotacionar(Pontos *pontos, ponto centro, float angulo_graus) {
-  float ** rotacao = CriarMatrizRotacao(angulo_graus);
-  float ** translacao1 = CriarMatrizTranslacao(-centro.point[0], -centro.point[1]);
-  float ** translacao2 = CriarMatrizTranslacao(centro.point[0], centro.point[1]);
+
+
+void rotacionar_com_mouse(Pontos *pontos, ponto *centro, ponto mouse, int indice){
+  ponto vetor1;
+  ponto vetor2;
+  vetor1.point[2] = 1;
+  vetor2.point[2] = 1;
+
+  vetor1.point[0] = pontos->data[indice].point[0] - centro->point[0];
+  vetor1.point[1] =  pontos->data[indice].point[1] - centro->point[1];
+  vetor2.point[0] =  mouse.point[0] - centro->point[0];
+  vetor2.point[1] = mouse.point[1] - centro->point[1];
+  //printf("O Vetor1 é:\n\tx: %2.f\n\ty: %2.f\nO vetor2 é:\n\tx: %2.f\n\ty: %2.f\n", vetor1.point[0], vetor1.point[1], vetor2.point[0], vetor2.point[1]);
+  float angulo1 = atan2f(vetor1.point[1], vetor1.point[0]);
+  float angulo2 = atan2f(vetor2.point[1], vetor2.point[0]);
+  float angulo_rad = angulo2 - angulo1;
+  //printf("\n\t O angulo entre eles é %f\n\t", angulo_rad);
+  float ** rotacao = CriarMatrizRotacao(angulo_rad);
+  float ** translacao1 = CriarMatrizTranslacao(-centro->point[0], -centro->point[1]);
+  float ** translacao2 = CriarMatrizTranslacao(centro->point[0], centro->point[1]);
   float ** result = MultiplicaMatriz(translacao1,rotacao);
   result = MultiplicaMatriz(result,translacao2);
   for (int i = 0; i < pontos->quantidade_atual; i++) {
     float* new = MultiplicaPonto(pontos->data[i].point, result);
     pontos->data[i].point[0] = new[0];
     pontos->data[i].point[1] = new[1];
-  }
+  } 
 }
 void aumentar_escala(Pontos *pontos, ponto centro) {
   for (int i = 0; i < pontos->quantidade_atual; i++) {
