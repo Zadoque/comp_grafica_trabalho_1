@@ -13,7 +13,7 @@ void transladar_para_origem(Pontos *pontos, ponto centro);
 void trasladar_de_volta(Pontos *pontos, ponto centro);
 
 void rotacionar_com_mouse(Pontos *pontos, ponto* centro, ponto mouse, int indice);
-
+void escala_com_mouse(Pontos* pontos, ponto* centro, ponto mouse, int indice);
 void aumentar_escala(Pontos* pontos, ponto centro);
 
 void diminuir_escala(Pontos* pontos, ponto centro);

@@ -272,6 +272,14 @@ void processar_clique_desenho(int x, int y) {
 
     case ESCALA:
       printf("escala agora");
+      if(g_clicks.quantidade_atual >= 2){
+        for(int i = 0; i < g_clicks.quantidade_atual; i ++){
+          if(calcula_distancia(mouse, g_clicks.data[i]) < 6){
+            selecao_poligono = 4;
+            selecao_ponto.indice = i;
+          }
+        }
+      }
       break;
     case SHEAR:
       printf("Shear agora");
@@ -490,6 +498,10 @@ void onMotion(int x, int y) {
   } else if(selecao_poligono == 3 &&
             estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO){
             rotacionar_com_mouse(&g_clicks, &centro, mouse, selecao_ponto.indice);
+            glutPostRedisplay();
+  } else if(selecao_poligono == 4 &&
+            estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO){
+            escala_com_mouse(&g_clicks, &centro, mouse, selecao_ponto.indice);
             glutPostRedisplay();
   }
 }

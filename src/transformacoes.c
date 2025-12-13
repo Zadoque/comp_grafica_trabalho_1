@@ -50,6 +50,44 @@ void rotacionar_com_mouse(Pontos *pontos, ponto *centro, ponto mouse, int indice
     pontos->data[i].point[1] = new[1];
   } 
 }
+void escala_com_mouse(Pontos* pontos, ponto* centro, ponto mouse, int indice){
+ 
+  float ** translacao1 = CriarMatrizTranslacao(-centro->point[0], -centro->point[1]);
+  float ** translacao2 = CriarMatrizTranslacao(centro->point[0], centro->point[1]);
+  ponto p;
+  p.point[0] = pontos->data[indice].point[0];
+  p.point[1] = pontos->data[indice].point[1];
+  p.point[2] = 1;
+  float escala = calcula_distancia(mouse, *centro) / calcula_distancia(p, *centro);
+
+  float ** Matriz_escala = CriarMatrizEscala(escala, escala);
+  Matriz_escala = MultiplicaMatriz(translacao1, Matriz_escala);
+  Matriz_escala = MultiplicaMatriz(translacao2, Matriz_escala);
+  for (int i = 0; i < pontos->quantidade_atual; i++){
+    float* new = MultiplicaPonto(pontos->data[i].point, Matriz_escala);
+    pontos->data[i].point[0] = new[0];
+    pontos->data[i].point[1] = new[1];
+  }void escala_com_mouse(Pontos* pontos, ponto* centro, ponto mouse, int indice){
+ ponto vetor1;
+  ponto vetor2;
+  vetor1.point[2] = 1;
+  vetor2.point[2] = 1;
+
+  vetor1.point[0] = pontos->data[indice].point[0] - centro->point[0];
+  vetor1.point[1] =  pontos->data[indice].point[1] - centro->point[1];
+  vetor2.point[0] =  mouse.point[0] - centro->point[0];
+  vetor2.point[1] = mouse.point[1] - centro->point[1];
+  float escala_x = vetor2.point[0] / vetor1.point[0];
+  float escala_y = vetor2.point[1] / vetor1.point[1];
+  float ** Matriz_escala = CriarMatrizEscala(escala_x, escala_y);
+  for (int i = 0; i < pontos->quantidade_atual; i++){
+    float* new = MultiplicaPonto(pontos->data[i].point, Matriz_escala);
+    pontos->data[i].point[0] = new[0];
+    pontos->data[i].point[1] = new[1];
+  }
+}
+}
+
 void aumentar_escala(Pontos *pontos, ponto centro) {
   for (int i = 0; i < pontos->quantidade_atual; i++) {
     pontos->data[i].point[0] += (pontos->data[i].point[0] - centro.point[0]) * 0.05;
