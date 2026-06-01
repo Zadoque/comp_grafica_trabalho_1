@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Nome do projeto
 PROJECT_NAME="computacao_grafica"
