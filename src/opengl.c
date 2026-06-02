@@ -10,7 +10,7 @@ Pontos g_curva_atual; // Nova: armazenar pontos da curva gerada
 Selecao selecao_ponto;
 int selecao_poligono;
 ponto centro;
-
+int precisa_refazer_curva = 0;
 // Configurações visuais
 static float cor_fundo[3] = {0.2f, 0.3f, 0.4f};
 
@@ -31,8 +31,8 @@ void initGL() {
 }
 
 void gerar_curva_selecionada() {
-  if (g_clicks.quantidade_atual < 3)
-    return;
+  if (g_clicks.quantidade_atual < 3) return;
+  if (precisa_refazer_curva == 0) return;
   int poligono = (estado_atual.poligono == MODO_POLIGONO_FECHADO) ? 1 : 0;
   switch (estado_atual.curva) {
   case MODO_CURVA_HERMITE:
@@ -78,7 +78,10 @@ void desenhar_curva_atual() {
     glColor3f(0.5f, 1.0f, 0.5f); // Verde claro
     break;
   }
-  gerar_curva_selecionada();
+  if(precisa_refazer_curva == 1){
+    gerar_curva_selecionada();
+    printf("\n\tcurva gerada com sucesso");
+  }
   glLineWidth(3.0f);
   glBegin(GL_LINE_STRIP);
   for (int i = 0; i < g_curva_atual.quantidade_atual; i++) {
@@ -228,6 +231,7 @@ void processar_clique_desenho(int x, int y) {
   case MODO_CRIAR_PONTO:
     pontos_push(&g_clicks, mouse);
     calcular_centro_medio(&centro, &g_clicks);
+    precisa_refazer_curva = 1;
     glutPostRedisplay();
     break;
   case MODO_SELECIONAR_PONTO:
@@ -360,9 +364,11 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       }
       break;
     case 1:
+      precisa_refazer_curva = (poligono == estado_atual.poligono) ? 0 : 1;
       estado_atual.poligono = poligono;
       break;
     case 2:
+      precisa_refazer_curva = (curva == estado_atual.curva) ? 0 : 1;
       estado_atual.curva = curva;
       printf("Agora é %u\n", estado_atual.curva);
       break;
@@ -430,6 +436,7 @@ void onMouse(int button, int state, int x, int y) {
         diminuir_escala(&g_clicks, centro);
       }
       calcular_centro_medio(&centro, &g_clicks);
+      precisa_refazer_curva = 1;
       glutPostRedisplay();
     }
   }
@@ -441,6 +448,8 @@ void onMouseMove(int x, int y) {
 
   if (x >= largura_desenho) {
     // Mouse no menu
+    // Não precisa recalcular a curva
+    precisa_refazer_curva = 0;
     int menu_x = x - largura_desenho;
     int menu_y = glutGet(GLUT_WINDOW_HEIGHT) - y;
 
@@ -484,24 +493,29 @@ void onMotion(int x, int y) {
     g_clicks.data[selecao_ponto.indice].point[0] = x;
     g_clicks.data[selecao_ponto.indice].point[1] = y;
     calcular_centro_medio(&centro, &g_clicks);
+    precisa_refazer_curva = 1;
     glutPostRedisplay(); // Redesenhar se necessário
   } else if (selecao_poligono == 1 &&
              estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO) {
     translacao_com_mouse(&g_clicks, centro, x, y);
     calcular_centro_medio(&centro, &g_clicks);
+    precisa_refazer_curva = 1;
     glutPostRedisplay();
   } else if (selecao_poligono == 2 &&
              estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO) {
     translacao_com_mouse(&g_clicks, g_clicks.data[selecao_ponto.indice], x, y);
     calcular_centro_medio(&centro, &g_clicks);
+    precisa_refazer_curva = 1;
     glutPostRedisplay();
   } else if(selecao_poligono == 3 &&
             estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO){
             rotacionar_com_mouse(&g_clicks, &centro, mouse, selecao_ponto.indice);
+            precisa_refazer_curva = 1;
             glutPostRedisplay();
   } else if(selecao_poligono == 4 &&
             estado_atual.criacao_ou_selecao == MODO_SELECIONAR_POLIGONO){
             escala_com_mouse(&g_clicks, &centro, mouse, selecao_ponto.indice);
+            precisa_refazer_curva = 1;
             glutPostRedisplay();
   }
 }
