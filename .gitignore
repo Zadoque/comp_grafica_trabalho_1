@@ -1,3 +1,8 @@
 /.vscode
-bin/
-obj/
+# Ignora qualquer pasta chamada "bin" e seus conteúdos em qualquer subdiretório
+**/bin/
+**/bin/**
+
+# Recomendado: ignorar pastas de compilação também
+**/obj/
+**/obj/**
