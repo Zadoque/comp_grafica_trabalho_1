@@ -82,7 +82,8 @@ void desenhar_curva_atual() {
     gerar_curva_selecionada();
     printf("\n\tcurva gerada com sucesso");
   }
-  glLineWidth(3.0f);
+  sprintf(estado_atual.qtd_nuvem_pontos, "%d", g_curva_atual.quantidade_atual); 
+  glLineWidth(0.1f);
   glBegin(GL_LINE_STRIP);
   for (int i = 0; i < g_curva_atual.quantidade_atual; i++) {
     glVertex2f(g_curva_atual.data[i].point[0], g_curva_atual.data[i].point[1]);
@@ -138,12 +139,12 @@ void desenhar_conteudo_principal() {
   }
   glEnd();
   glColor3f(0.0f, 1.0f, 0.0f); // Verde
-  glLineWidth(2.0f);
+  glLineWidth(0.1f);
 
   switch (estado_atual.poligono) {
   case MODO_POLIGONO_FECHADO:
     if (g_clicks.quantidade_atual <= 2) {
-      glBegin(GL_LINE_STRIP);
+      glBegin(GL_LINE_SMOOTH);
       for (int i = 0; i < g_clicks.quantidade_atual; i++) {
         glVertex2f(g_clicks.data[i].point[0], g_clicks.data[i].point[1]);
       }
@@ -217,6 +218,7 @@ void display() {
   glEnd();
 
   desenhar_botoes_menu();
+  desenhar_info();
   glFlush();
 }
 
@@ -230,6 +232,7 @@ void processar_clique_desenho(int x, int y) {
   switch (estado_atual.criacao_ou_selecao) {
   case MODO_CRIAR_PONTO:
     pontos_push(&g_clicks, mouse);
+    sprintf(estado_atual.qtd_pontos_controle, "%d", g_clicks.quantidade_atual); 
     calcular_centro_medio(&centro, &g_clicks);
     precisa_refazer_curva = 1;
     glutPostRedisplay();

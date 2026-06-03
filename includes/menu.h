@@ -27,6 +27,8 @@ typedef struct {
   Poligono poligono;
   Curva curva;
   Operacoes operacao;
+  char qtd_pontos_controle[50];
+  char qtd_nuvem_pontos[50];
 } EstadoAplicacao;
 
 // Estrutura dos botões
@@ -63,6 +65,21 @@ typedef struct {
   Botoes2 botoes2[2];
   Botoes3 botoes3[4];
 } Botoes;
+/*
+ * Colocado em comentário para só ter o número de pontos por enquanto kkkk
+typedef struct {
+  int x, y, largura, altura;
+  char texto[50];
+  int destacado;
+} description;
+*/
+
+typedef struct {
+  int x, y;
+  float largura, altura;
+  char texto[20];
+  int destacado;
+} information;
 
 // Variáveis globais do menu
 extern EstadoAplicacao estado_atual;
@@ -73,10 +90,14 @@ extern int menu_largura;
 // Funções do menu
 void atualizar_dimensoes_menu();
 void inicializar_menu();
-void desenhar_texto(float x, float y, void *font, char *texto);
 void desenhar_botao_generico(void* botao, TipoBotao tipo, int indice);
 void desenhar_botoes_menu();
 void processar_clique_menu(int x, int y);
 void processar_mouse_move_menu(int x, int y);
-
+float calcular_largura_texto_stroke(void *font, const char *texto, float escala);
+float calcular_altura_fonte_stroke(float escala);
+void desenhar_texto(float x, float y, void *font, const char *texto, float escala);
+void recalcula_dimensoes_info();
+void atualiza_info();
+void desenhar_info();
 #endif
