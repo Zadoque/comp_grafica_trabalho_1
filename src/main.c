@@ -32,5 +32,6 @@ int main(int argc, char **argv) {
 
   // Limpeza (nunca será executada devido ao glutMainLoop)
   pontos_free(&g_clicks);
+  pontos_free(&g_curva_atual);
   return 0;
 }
