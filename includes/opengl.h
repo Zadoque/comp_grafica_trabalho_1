@@ -2,6 +2,7 @@
 #define OPENGL_H
 
 #include "pontos.h"
+#include "vetor.h"
 #include "menu.h"
 
 // Incluir todas as curvas

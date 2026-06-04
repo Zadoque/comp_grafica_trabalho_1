@@ -30,6 +30,7 @@ SRC_FILES=(
   src/opengl.c
   src/menu.c
   src/matriz.c
+  src/vetor.c
   src/transformacoes.c
   src/curvas/hermite.c
   src/curvas/bezier.c

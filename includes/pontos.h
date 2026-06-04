@@ -39,5 +39,5 @@ double raiz_quadrada_newton(double n);
 * @param ponto P2 -> segundo ponto
 */
 float calcula_distancia(ponto P1, ponto P2);
-
+float calcula_dist_ponto_segmento(ponto x, ponto A, ponto B); 
 #endif

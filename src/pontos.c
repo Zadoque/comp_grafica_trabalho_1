@@ -53,3 +53,42 @@ float calcula_distancia(ponto P1, ponto P2) {
   double dist_y = (double)(P2.point[1] - P1.point[1]);
   return sqrt(dist_x * dist_x + dist_y * dist_y);
 }
+
+
+
+float calcula_dist_ponto_segmento(ponto x, ponto A, ponto B) {
+    double abx = (double)(B.point[0] - A.point[0]);
+    double aby = (double)(B.point[1] - A.point[1]);
+
+    double apx = (double)(x.point[0] - A.point[0]);
+    double apy = (double)(x.point[1] - A.point[1]);
+
+    double ab2 = abx * abx + aby * aby;
+
+    /* Caso degenerado: A e B são o mesmo ponto */
+    if (ab2 == 0.0) {
+        double dx = (double)(x.point[0] - A.point[0]);
+        double dy = (double)(x.point[1] - A.point[1]);
+        return (float)sqrt(dx * dx + dy * dy);
+    }
+
+    double t = (apx * abx + apy * aby) / ab2;
+
+    double px, py;
+
+    if (t <= 0.0) {
+        px = (double)A.point[0];
+        py = (double)A.point[1];
+    } else if (t >= 1.0) {
+        px = (double)B.point[0];
+        py = (double)B.point[1];
+    } else {
+        px = (double)A.point[0] + t * abx;
+        py = (double)A.point[1] + t * aby;
+    }
+
+    double dx = (double)x.point[0] - px;
+    double dy = (double)x.point[1] - py;
+
+    return (float)sqrt(dx * dx + dy * dy);
+}

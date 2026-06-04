@@ -1,7 +1,8 @@
 #include "../../includes/curvas/bspline.h"
 // #include <math.h>
 //#include <stdio.h>
-
+float *t;
+int qtd;
 // Matriz B-Spline (corrigida e dividida por 6)
 static const float MATRIZ_BSPLINE[4][4] = {
     {-1.0f / 6.0f, 3.0f / 6.0f, -3.0f / 6.0f, 1.0f / 6.0f},
@@ -32,17 +33,34 @@ ponto calcular_ponto_bspline(ponto P0, ponto P1, ponto P2, ponto P3, float t) {
 
   return resultado;
 }
+void subdivide(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, float t0, float t1, float tolerance) {
+    ponto A = calcular_ponto_bspline(P0,P1,P2,P3, t0);
+    ponto B = calcular_ponto_bspline(P0,P1,P2,P3, t1);
+    ponto M = calcular_ponto_bspline(P0,P1,P2,P3, (t0+t1)/2);
+    
+    float dist = calcula_dist_ponto_segmento(M, A, B);
+    
+    if (dist < tolerance) {
+       pontos_push(curva_resultado, M);
+    } else {
+        subdivide(P0, P1, P2, P3, curva_resultado, t0, (t0+t1)/2, tolerance);
+        subdivide(P0, P1, P2, P3, curva_resultado, (t0+t1)/2, t1, tolerance);
+    }
+}
 
-void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado) {
+void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, vec *vetor_parametro) {
   curva_resultado->quantidade_atual = 0;
   // B-Spline: cada grupo de 4 pontos consecutivos gera um segmento
-  int resolucao = (int)(calcula_distancia(P1, P2)) * 5;
-    // Gerar pontos do segmento
-  for (int j = 0; j <= resolucao; j++) {
-    float t = (float)(j + 0.00001) / (float)resolucao;
-    ponto p = calcular_ponto_bspline(P0, P1, P2, P3, t);
-    pontos_push(curva_resultado, p);
-  }
+  // Gerar pontos do segmento
+  ponto A = calcular_ponto_bspline(P0, P1, P2, P3,0.0f);
+  pontos_push(curva_resultado, A);
+  subdivide(P0, P1, P2, P3, curva_resultado, 0.0f, 1.0f, 0.1f);
+  ponto B = calcular_ponto_bspline(P0,P1,P2,P3, 1.0f);
+  pontos_push(curva_resultado, B);
+  //for (int i = 0; i <= vetor_parametro->quantidade_atual; i++) {
+ //   ponto p = calcular_ponto_bspline(P0, P1, P2, P3, vetor_parametro->vector[i]);
+   // pontos_push(curva_resultado, p);
+  // }
   //printf("Curva B-Spline gerada com %zu pontos\n",
          //curva_resultado->quantidade_atual);
 }
