@@ -29,6 +29,7 @@ typedef struct {
   Operacoes operacao;
   char qtd_pontos_controle[50];
   char qtd_nuvem_pontos[50];
+  int qtd_nuvem_pontos_number;
 } EstadoAplicacao;
 
 // Estrutura dos botões

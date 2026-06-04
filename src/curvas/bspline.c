@@ -33,48 +33,16 @@ ponto calcular_ponto_bspline(ponto P0, ponto P1, ponto P2, ponto P3, float t) {
   return resultado;
 }
 
-void gerar_curva_bspline(Pontos *pontos_controle, Pontos *curva_resultado, int poligono) {
-  if (pontos_controle->quantidade_atual < 4)
-    return;
+void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado) {
   curva_resultado->quantidade_atual = 0;
-
   // B-Spline: cada grupo de 4 pontos consecutivos gera um segmento
-  for (int i = 0; i <= pontos_controle->quantidade_atual - 4; i++) {
-    ponto P0 = pontos_controle->data[i];
-    ponto P1 = pontos_controle->data[i + 1];
-    ponto P2 = pontos_controle->data[i + 2];
-    ponto P3 = pontos_controle->data[i + 3];
-    int resolucao = (int)(calcula_distancia(P1, P2)) * 5;
+  int resolucao = (int)(calcula_distancia(P1, P2)) * 5;
     // Gerar pontos do segmento
-    for (int j = 0; j <= resolucao; j++) {
-      float t = (float)(j + 0.00001) / (float)resolucao;
-      ponto p = calcular_ponto_bspline(P0, P1, P2, P3, t);
-      pontos_push(curva_resultado, p);
-    }
+  for (int j = 0; j <= resolucao; j++) {
+    float t = (float)(j + 0.00001) / (float)resolucao;
+    ponto p = calcular_ponto_bspline(P0, P1, P2, P3, t);
+    pontos_push(curva_resultado, p);
   }
-  if (poligono) {
-    for (int i = 0; i < 3; i++) {
-      ponto P0 =
-          pontos_controle->data[(pontos_controle->quantidade_atual - 3 + i) %
-                                pontos_controle->quantidade_atual];
-      ponto P1 =
-          pontos_controle->data[(pontos_controle->quantidade_atual - 2 + i) %
-                                pontos_controle->quantidade_atual];
-      ponto P2 =
-          pontos_controle->data[(pontos_controle->quantidade_atual - 1 + i) %
-                                pontos_controle->quantidade_atual];
-      ponto P3 = pontos_controle->data[(pontos_controle->quantidade_atual + i) %
-                                       pontos_controle->quantidade_atual];
-      int resolucao = (int)(calcula_distancia(P1, P2)) * 5;
-      // Gerar pontos do segmento
-      for (int j = 0; j <= resolucao; j++) {
-        float t = (float)(j + 0.00001) / (float)resolucao;
-        ponto p = calcular_ponto_bspline(P0, P1, P2, P3, t);
-        pontos_push(curva_resultado, p);
-      }
-    }
-  }
-
   //printf("Curva B-Spline gerada com %zu pontos\n",
          //curva_resultado->quantidade_atual);
 }

@@ -31,58 +31,57 @@ void initGL() {
 }
 
 void gerar_curva_selecionada() {
-  if (g_clicks.quantidade_atual < 3) return;
+  if (g_clicks.quantidade_atual < 4) return;
   if (precisa_refazer_curva == 0) return;
   int poligono = (estado_atual.poligono == MODO_POLIGONO_FECHADO) ? 1 : 0;
+  ponto P0, P1, P2, P3;
+  estado_atual.qtd_nuvem_pontos_number = 0;
   switch (estado_atual.curva) {
   case MODO_CURVA_HERMITE:
     gerar_curva_hermite(&g_clicks, &g_curva_atual, poligono);
+    desenhar_curva_atual();
     break;
 
   case MODO_CURVA_BEZIER:
     if (g_clicks.quantidade_atual >= 4) {
       gerar_curva_bezier(&g_clicks, &g_curva_atual, poligono);
+      desenhar_curva_atual();
     }
     break;
 
   case MODO_CURVA_BSPLINE:
-    if (g_clicks.quantidade_atual >= 4) {
-      gerar_curva_bspline(&g_clicks, &g_curva_atual, poligono);
+    glColor3f(1.0f, 0.5f, 0.0f); // Laranja
+    for(int i = 0; i <= g_clicks.quantidade_atual - 4; i++){
+      P0 = g_clicks.data[i];
+      P1 =  g_clicks.data[i + 1];
+      P2 =  g_clicks.data[i + 2];
+      P3 =  g_clicks.data[i + 3];
+      gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual);
+      estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+      desenhar_curva_atual();
+    }
+    if (poligono) {
+      for (int i = 0; i < 3; i++) {
+        P0 = g_clicks.data[(g_clicks.quantidade_atual - 3 + i) % g_clicks.quantidade_atual];
+        P1 = g_clicks.data[(g_clicks.quantidade_atual - 2 + i) % g_clicks.quantidade_atual];
+        P2 = g_clicks.data[(g_clicks.quantidade_atual - 1 + i) % g_clicks.quantidade_atual];
+        P3 = g_clicks.data[(g_clicks.quantidade_atual + i)     % g_clicks.quantidade_atual];
+        gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual);
+        estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+        desenhar_curva_atual();
+      }
     }
     break;
 
   case MODO_CURVA_CATMULLROM:
-    if (g_clicks.quantidade_atual >= 4) {
-      gerar_curva_catmullrom(&g_clicks, &g_curva_atual);
-    }
+    gerar_curva_catmullrom(&g_clicks, &g_curva_atual);
+    desenhar_curva_atual();
     break;
   }
+  sprintf(estado_atual.qtd_nuvem_pontos, "%d", estado_atual.qtd_nuvem_pontos_number);
 }
 
 void desenhar_curva_atual() {
-  if ((g_clicks.quantidade_atual < 4))
-    return;
-
-  // Definir cor da curva baseada no tipo
-  switch (estado_atual.curva) {
-  case MODO_CURVA_HERMITE:
-    glColor3f(1.0f, 0.0f, 1.0f); // Magenta
-    break;
-  case MODO_CURVA_BEZIER:
-    glColor3f(0.0f, 0.0f, 1.0f); // Azul
-    break;
-  case MODO_CURVA_BSPLINE:
-    glColor3f(1.0f, 0.5f, 0.0f); // Laranja
-    break;
-  case MODO_CURVA_CATMULLROM:
-    glColor3f(0.5f, 1.0f, 0.5f); // Verde claro
-    break;
-  }
-  if(precisa_refazer_curva == 1){
-    gerar_curva_selecionada();
-    printf("\n\tcurva gerada com sucesso");
-  }
-  sprintf(estado_atual.qtd_nuvem_pontos, "%d", g_curva_atual.quantidade_atual); 
   glLineWidth(0.1f);
   glBegin(GL_LINE_STRIP);
   for (int i = 0; i < g_curva_atual.quantidade_atual; i++) {
@@ -169,7 +168,7 @@ void desenhar_conteudo_principal() {
   }
 
   desenhar_centro_poligono();
-  desenhar_curva_atual();
+  gerar_curva_selecionada();
 }
 
 void display() {
@@ -361,6 +360,7 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       y <= y_botao + altura_botao) {
     switch (mudanca) {
     case 0:
+      precisa_refazer_curva = (criacao_ou_selecao_ponto == estado_atual.criacao_ou_selecao) ? 0 : 1;
       estado_atual.criacao_ou_selecao = criacao_ou_selecao_ponto;
       if (estado_atual.criacao_ou_selecao == MODO_CRIAR_PONTO) {
         estado_atual.operacao = NENHUMA;
@@ -376,10 +376,11 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
       printf("Agora é %u\n", estado_atual.curva);
       break;
     case 3:
+      precisa_refazer_curva = (operacao == estado_atual.operacao ) ? 0 : 1;
       estado_atual.operacao = operacao;
       break;
     }
-    glutPostRedisplay();
+    if (precisa_refazer_curva) glutPostRedisplay();
   }
 }
 void processar_clique_menu(int x, int y) {
@@ -448,11 +449,9 @@ void onMouse(int button, int state, int x, int y) {
 void onMouseMove(int x, int y) {
   int largura_janela = glutGet(GLUT_WINDOW_WIDTH);
   int largura_desenho = largura_janela - menu_largura;
-
+  int change = 0;
   if (x >= largura_desenho) {
     // Mouse no menu
-    // Não precisa recalcular a curva
-    precisa_refazer_curva = 0;
     int menu_x = x - largura_desenho;
     int menu_y = glutGet(GLUT_WINDOW_HEIGHT) - y;
 
@@ -461,18 +460,21 @@ void onMouseMove(int x, int y) {
       botao->destacado =
           (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&
            menu_y >= botao->y && menu_y <= botao->y + botao->altura);
+      change += botao->destacado;
     }
     for (int i = 0; i < 2; i++) {
       Botoes2 *botao = &botoes.botoes2[i];
       botao->destacado =
           (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&
            menu_y >= botao->y && menu_y <= botao->y + botao->altura);
+      change += botao->destacado;
     }
     for (int i = 0; i < 4; i++) {
       Botoes3 *botao = &botoes.botoes3[i];
       botao->destacado =
           (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&
            menu_y >= botao->y && menu_y <= botao->y + botao->altura);
+      change += botao->destacado;
     }
     if (estado_atual.criacao_ou_selecao != MODO_CRIAR_PONTO) {
       for (int i = 0; i < 4; i++) {
@@ -480,9 +482,14 @@ void onMouseMove(int x, int y) {
         botao->destacado =
             (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&
              menu_y >= botao->y && menu_y <= botao->y + botao->altura);
+        change += botao->destacado;
       }
     }
-    glutPostRedisplay();
+    if(change){ 
+      //precis_recalcular_curva
+      precisa_refazer_curva = 1;
+      glutPostRedisplay();
+    }
   }
 }
 
