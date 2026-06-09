@@ -41,7 +41,29 @@ void gerar_curva_selecionada() {
   estado_atual.qtd_nuvem_pontos_number = 0;
   switch (estado_atual.curva) {
   case MODO_CURVA_HERMITE:
-    gerar_curva_hermite(&g_clicks, &g_curva_atual, poligono);
+    for (int i = 0; g_clicks.quantidade_atual - i >= 4; i++) {
+      P0 = g_clicks.data[i];
+      P1 = g_clicks.data[i + 1];
+      P2 = g_clicks.data[i + 2];
+      P3 = g_clicks.data[i + 3];
+      gerar_curva_hermite(P0, P1, P2, P3, &g_curva_atual);
+      estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+      desenhar_curva_atual();
+    }
+    if (poligono) {
+      int j = 0;
+      for (int i = 0; i < 3; i++) {
+        P0 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 3 + i)) % (int)(g_clicks.quantidade_atual))];
+        P1 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 2 + i)) % (int)(g_clicks.quantidade_atual))];
+        P2 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 1 + i)) % (int)(g_clicks.quantidade_atual))];
+        P3 = g_clicks.data[i];
+        gerar_curva_hermite(P0, P1, P2, P3, &g_curva_atual);
+        estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+        desenhar_curva_atual();
+      }
+    }
+
+    gerar_curva_hermite(P0, P1, P2, P3, &g_curva_atual);
     desenhar_curva_atual();
     break;
 

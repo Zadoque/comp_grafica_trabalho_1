@@ -11,7 +11,7 @@
  */
 
 // Gerar curva Hermite completa
-void gerar_curva_hermite(Pontos* pontos_controle, Pontos* curva_resultado, int poligono);
+void gerar_curva_hermite(ponto P0, ponto P1, ponto P2, ponto P3, Pontos* curva_resultado);
 
 // Calcular um ponto específico na curva (t entre 0 e 1)
 ponto calcular_ponto_hermite(ponto P1, ponto P2, ponto T1, ponto T2, float t);

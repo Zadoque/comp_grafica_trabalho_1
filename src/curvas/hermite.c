@@ -42,53 +42,27 @@ void calcular_tangentes_hermite(ponto P1, ponto P2, ponto P3, ponto P4,
   T2->point[1] = P4.point[1] - P3.point[1];
 }
 
-void gerar_curva_hermite(Pontos *pontos_controle, Pontos *curva_resultado,
-                         int poligono) {
-  if (pontos_controle->quantidade_atual < 4)
-    return;
-  // Limpar curva anterior
-  curva_resultado->quantidade_atual = 0;
-  ponto P0;
-  ponto P1;
-  ponto P2;
-  ponto P3;
-  ponto T1;
-  ponto T2;
-  ponto p;
-  int resolucao;
-  for (int i = 0; pontos_controle->quantidade_atual - i >= 4; i++) {
-    P0 = pontos_controle->data[i];
-    P1 = pontos_controle->data[i + 1];
-    P2 = pontos_controle->data[i + 2];
-    P3 = pontos_controle->data[i + 3];
-    resolucao = (int)(calcula_distancia(P0, P1)) * 5;
-    calcular_tangentes_hermite(P0, P1, P2, P3, &T1, &T2);
-    for (int j = 0; j <= resolucao; j++) {
-      float t = ((float)(j) + 0.0001) / (float)(resolucao);
-      p = calcular_ponto_hermite(P0, P1, T1, T2, t);
-      pontos_push(curva_resultado, p);
+void subdivide_Hermite(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, float t0, float t1, float tolerance) {
+    ponto A = calcular_ponto_hermite(P0,P1,P2,P3, t0);
+    ponto B = calcular_ponto_hermite(P0,P1,P2,P3, t1);
+    ponto M = calcular_ponto_hermite(P0,P1,P2,P3, (t0+t1)/2);
+    
+    float dist = calcula_dist_ponto_segmento(M, A, B);
+    
+    if (dist < tolerance) {
+       pontos_push(curva_resultado, M);
+    } else {
+        subdivide_Hermite(P0, P1, P2, P3, curva_resultado, t0, (t0+t1)/2, tolerance);
+        subdivide_Hermite(P0, P1, P2, P3, curva_resultado, (t0+t1)/2, t1, tolerance);
     }
-  }
-  if (poligono) {
-    int j = 0;
-    for (int i = 0; i < 3; i++) {
-      P0 = pontos_controle
-               ->data[(((int)(pontos_controle->quantidade_atual - 3 + i)) %
-                       (int)(pontos_controle->quantidade_atual))];
-      P1 = pontos_controle
-               ->data[(((int)(pontos_controle->quantidade_atual - 2 + i)) %
-                       (int)(pontos_controle->quantidade_atual))];
-      P2 = pontos_controle
-               ->data[(((int)(pontos_controle->quantidade_atual - 1 + i)) %
-                       (int)(pontos_controle->quantidade_atual))];
-      P3 = pontos_controle->data[i];
-      resolucao = (int)(calcula_distancia(P0, P1)) * 5;
-      calcular_tangentes_hermite(P0, P1, P2, P3, &T1, &T2);
-      for (int j = 0; j <= resolucao; j++) {
-        float t = ((float)(j) + 0.0001) / (float)(resolucao);
-        p = calcular_ponto_hermite(P0, P1, T1, T2, t);
-        pontos_push(curva_resultado, p);
-      }
-    }
-  }
 }
+void gerar_curva_hermite(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado) {
+  ponto T1, T2;
+  calcular_tangentes_hermite(P0, P1, P2, P3, &T1, &T2);
+  curva_resultado->quantidade_atual = 0;
+  ponto A = calcular_ponto_hermite(P0, P1, T1, T2,0.0f);
+  pontos_push(curva_resultado, A);
+  subdivide_Hermite(P0, P1, P2, P3, curva_resultado, 0.0f, 1.0f, 0.1f);
+  ponto B = calcular_ponto_hermite(P0,P1,P2,P3, 1.0f);
+  pontos_push(curva_resultado, B);
+ }
