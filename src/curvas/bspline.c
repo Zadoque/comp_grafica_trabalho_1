@@ -50,17 +50,9 @@ void subdivide(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, 
 
 void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, vec *vetor_parametro) {
   curva_resultado->quantidade_atual = 0;
-  // B-Spline: cada grupo de 4 pontos consecutivos gera um segmento
-  // Gerar pontos do segmento
   ponto A = calcular_ponto_bspline(P0, P1, P2, P3,0.0f);
   pontos_push(curva_resultado, A);
   subdivide(P0, P1, P2, P3, curva_resultado, 0.0f, 1.0f, 0.1f);
   ponto B = calcular_ponto_bspline(P0,P1,P2,P3, 1.0f);
   pontos_push(curva_resultado, B);
-  //for (int i = 0; i <= vetor_parametro->quantidade_atual; i++) {
- //   ponto p = calcular_ponto_bspline(P0, P1, P2, P3, vetor_parametro->vector[i]);
-   // pontos_push(curva_resultado, p);
-  // }
-  //printf("Curva B-Spline gerada com %zu pontos\n",
-         //curva_resultado->quantidade_atual);
 }

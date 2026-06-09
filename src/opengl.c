@@ -46,12 +46,25 @@ void gerar_curva_selecionada() {
     break;
 
   case MODO_CURVA_BEZIER:
-    if (g_clicks.quantidade_atual >= 4) {
-      gerar_curva_bezier(&g_clicks, &g_curva_atual, poligono);
+    for (int i = 0; i <= g_clicks.quantidade_atual - 4; i += 3) {
+      P0 = g_clicks.data[i];
+      P1 = g_clicks.data[i + 1];
+      P2 = g_clicks.data[i + 2];
+      P3 = g_clicks.data[i + 3];
+      gerar_curva_bezier(P0, P1, P2, P3, &g_curva_atual);
+      estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+      desenhar_curva_atual();
+    }
+    if (poligono && g_clicks.quantidade_atual % 3 == 0) { // % 3 garante que acurva fechada será unida no mesmo ponot, P0
+      P0 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 3 )) % (int)(g_clicks.quantidade_atual))];
+      P1 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 2 )) % (int)(g_clicks.quantidade_atual))];
+      P2 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 1 )) % (int)(g_clicks.quantidade_atual))];
+      P3 = g_clicks.data[0];
+      gerar_curva_bezier(P0, P1, P2, P3, &g_curva_atual);
+      estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
       desenhar_curva_atual();
     }
     break;
-
   case MODO_CURVA_BSPLINE:
     glColor3f(1.0f, 0.5f, 0.0f); // Laranja
     for(int i = 0; i <= g_clicks.quantidade_atual - 4; i++){
