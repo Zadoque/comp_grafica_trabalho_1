@@ -282,6 +282,7 @@ void processar_clique_desenho(int x, int y) {
           g_clicks.data[j] = g_clicks.data[j + 1];
         }
         g_clicks.quantidade_atual--;
+        sprintf(estado_atual.qtd_pontos_controle, "%d", g_clicks.quantidade_atual); 
         glutPostRedisplay();
         break;
       }
