@@ -33,34 +33,30 @@ ponto calcular_ponto_catmullrom(ponto P0, ponto P1, ponto P2, ponto P3,
 
   return resultado;
 }
-
-void gerar_curva_catmullrom(Pontos *pontos_controle, Pontos *curva_resultado) {
-  if (pontos_controle->quantidade_atual < 4)
-    return;
-
-  curva_resultado->quantidade_atual = 0;
-
-  // Catmull-Rom: interpola entre pontos P1 e P2, usando P0 e P3 para tangentes
-  for (int i = 0; i <= pontos_controle->quantidade_atual - 4; i++) {
-    ponto P0 = pontos_controle->data[i];
-    ponto P1 = pontos_controle->data[i + 1];
-    ponto P2 = pontos_controle->data[i + 2];
-    ponto P3 = pontos_controle->data[i + 3];
-    int resolucao = (int)(calcula_distancia(P0, P3));
-
-    // Gerar pontos do segmento
-    for (int j = 0; j <= resolucao; j++) {
-      float t = (float)(j + 0.000001) / (float)resolucao;
-      ponto p = calcular_ponto_catmullrom(P0, P1, P2, P3, t);
-      // Evitar duplicar pontos entre segmentos
-      pontos_push(curva_resultado, p);
-    }
-  }
-  
-  
+void subdivide_catmullrom(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, float t0, float t1, float tolerance) {
+    ponto A = calcular_ponto_catmullrom(P0,P1,P2,P3, t0);
+    ponto B = calcular_ponto_catmullrom(P0,P1,P2,P3, t1);
+    ponto M = calcular_ponto_catmullrom(P0,P1,P2,P3, (t0+t1)/2);
     
-    //printf("Curva Catmull-Rom gerada com %zu pontos\n",
-          // curva_resultado->quantidade_atual);
-  
+    float dist = calcula_dist_ponto_segmento(M, A, B);
+    
+    if (dist < tolerance) {
+       pontos_push(curva_resultado, M);
+    } else {
+        subdivide_catmullrom(P0, P1, P2, P3, curva_resultado, t0, (t0+t1)/2, tolerance);
+        subdivide_catmullrom(P0, P1, P2, P3, curva_resultado, (t0+t1)/2, t1, tolerance);
+    }
+}
+
+
+void gerar_curva_catmullrom(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado) {
+
+    curva_resultado->quantidade_atual = 0;
+  ponto A = calcular_ponto_catmullrom(P0, P1, P2, P3,0.0f);
+  pontos_push(curva_resultado, A);
+  subdivide_catmullrom(P0, P1, P2, P3, curva_resultado, 0.0f, 1.0f, 0.1f);
+  ponto B = calcular_ponto_catmullrom(P0,P1,P2,P3, 1.0f);
+  pontos_push(curva_resultado, B);
+
            
 }

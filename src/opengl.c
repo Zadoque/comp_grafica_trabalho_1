@@ -112,8 +112,16 @@ void gerar_curva_selecionada() {
     break;
 
   case MODO_CURVA_CATMULLROM:
-    gerar_curva_catmullrom(&g_clicks, &g_curva_atual);
-    desenhar_curva_atual();
+     // Catmull-Rom: interpola entre pontos P1 e P2, usando P0 e P3 para tangentes
+    for (int i = 0; i <= g_clicks.quantidade_atual - 4; i++) {
+      P0 = g_clicks.data[i];
+      P1 = g_clicks.data[i + 1];
+      P2 = g_clicks.data[i + 2];
+      P3 = g_clicks.data[i + 3];
+      gerar_curva_catmullrom(P0, P1, P2, P3, &g_curva_atual);
+      estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+      desenhar_curva_atual();
+    }
     break;
   }
   sprintf(estado_atual.qtd_nuvem_pontos, "%d", estado_atual.qtd_nuvem_pontos_number);
