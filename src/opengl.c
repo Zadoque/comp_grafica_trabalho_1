@@ -94,7 +94,7 @@ void gerar_curva_selecionada() {
       P1 =  g_clicks.data[i + 1];
       P2 =  g_clicks.data[i + 2];
       P3 =  g_clicks.data[i + 3];
-      gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual,&vetor_parametro);
+      gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual);
       estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
       desenhar_curva_atual();
     }
@@ -104,7 +104,7 @@ void gerar_curva_selecionada() {
         P1 = g_clicks.data[(g_clicks.quantidade_atual - 2 + i) % g_clicks.quantidade_atual];
         P2 = g_clicks.data[(g_clicks.quantidade_atual - 1 + i) % g_clicks.quantidade_atual];
         P3 = g_clicks.data[(g_clicks.quantidade_atual + i)     % g_clicks.quantidade_atual];
-        gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual, &vetor_parametro);
+        gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual);
         estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
         desenhar_curva_atual();
       }
@@ -275,6 +275,19 @@ void processar_clique_desenho(int x, int y) {
   mouse.point[1] = y;
   mouse.point[2] = 1;
   switch (estado_atual.criacao_ou_selecao) {
+  case MODO_APAGAR_PONTO: 
+    for (int i = 0; i < g_clicks.quantidade_atual; i++){
+      if( calcula_distancia( mouse, g_clicks.data[i]) < 4){
+        for(int j = i; j < g_clicks.quantidade_atual - 1;j++){
+          g_clicks.data[j] = g_clicks.data[j + 1];
+        }
+        g_clicks.quantidade_atual--;
+        glutPostRedisplay();
+        break;
+      }
+    }
+
+    break;
   case MODO_CRIAR_PONTO:
     pontos_push(&g_clicks, mouse);
     sprintf(estado_atual.qtd_pontos_controle, "%d", g_clicks.quantidade_atual); 
@@ -283,14 +296,13 @@ void processar_clique_desenho(int x, int y) {
     glutPostRedisplay();
     break;
   case MODO_SELECIONAR_PONTO:
-    if (g_clicks.quantidade_atual >= 1) {
       for (int i = 0; i < g_clicks.quantidade_atual; i++) {
         if (calcula_distancia(mouse, g_clicks.data[i]) < 6) {
           selecao_ponto.selecionado = 1;
           selecao_ponto.indice = i;
+          break;
         }
       }
-    }
     break;
   case MODO_SELECIONAR_POLIGONO:
     switch (estado_atual.operacao) {
@@ -432,8 +444,8 @@ void verificar_clique_botao_generico(void *botao, TipoBotao tipo, int x,
 void processar_clique_menu(int x, int y) {
   int altura_janela = glutGet(GLUT_WINDOW_HEIGHT);
   y = altura_janela - y; // Inverter Y (GLUT usa origem superior esquerda)
-  if (y <= botoes.botoes1[2].y +  botoes.botoes1[2].altura + 2) {
-    for (int i = 0; i < 3; i++) {
+  if (y <= botoes.botoes1[4].y +  botoes.botoes1[4].altura + 2) {
+    for (int i = 0; i < 5; i++) {
       verificar_clique_botao_generico(&botoes.botoes1[i], TIPO_BOTAO1, x, y);
     }
   } else if (y <=  botoes.botoes2[1].y +  botoes.botoes2[1].altura + 22) {
@@ -501,7 +513,7 @@ void onMouseMove(int x, int y) {
     int menu_x = x - largura_desenho;
     int menu_y = glutGet(GLUT_WINDOW_HEIGHT) - y;
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 5; i++) {
       Botoes1 *botao = &botoes.botoes1[i];
       botao->destacado =
           (menu_x >= botao->x && menu_x <= botao->x + botao->largura &&

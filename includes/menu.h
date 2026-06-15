@@ -6,8 +6,10 @@
 // Estados da aplicação
 typedef enum {
   MODO_CRIAR_PONTO,
+  MODO_APAGAR_PONTO,
   MODO_SELECIONAR_PONTO,
   MODO_SELECIONAR_POLIGONO,
+  MODO_SELEICIONAR_CURVA
 } Criacao_ou_selecao;
 
 typedef enum { TRANSLACAO, ROTACAO, ESCALA, SHEAR, NENHUMA } Operacoes;
@@ -62,7 +64,7 @@ typedef struct {
 } BotoesOperacoes;
 
 typedef struct {
-  Botoes1 botoes1[3];
+  Botoes1 botoes1[5];
   Botoes2 botoes2[2];
   Botoes3 botoes3[4];
 } Botoes;

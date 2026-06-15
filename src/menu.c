@@ -25,7 +25,7 @@ void atualizar_dimensoes_menu() {
     // Margens e espaçamentos proporcionais
     int margem = menu_largura * 0.05;
     int largura_botao = menu_largura - (2 * margem);
-    int altura_botao = altura_janela * 0.05; // 5% da altura
+    int altura_botao = altura_janela * 0.03; // 5% da altura
     int espacamento = altura_janela * 0.01; // 1% da altura
     
      // === recalcular fonte responsiva ===
@@ -55,23 +55,38 @@ void atualizar_dimensoes_menu() {
     botoes.botoes1[0].largura = largura_botao;
     botoes.botoes1[0].altura = altura_botao;
     botoes.botoes1[0].acao = MODO_CRIAR_PONTO;
-
-    strcpy(botoes.botoes1[1].texto, "Selecionar vertice");
+    
+     strcpy(botoes.botoes1[1].texto, "Apagar Ponto");
     botoes.botoes1[1].x = margem;
     botoes.botoes1[1].y = y_inicio_grupo1 + (altura_botao + espacamento);
     botoes.botoes1[1].largura = largura_botao;
     botoes.botoes1[1].altura = altura_botao;
-    botoes.botoes1[1].acao = MODO_SELECIONAR_PONTO;
+    botoes.botoes1[1].acao = MODO_APAGAR_PONTO;
 
-    strcpy(botoes.botoes1[2].texto, "Operar Poligono");
+    
+    strcpy(botoes.botoes1[2].texto, "Selecionar vertice");
     botoes.botoes1[2].x = margem;
     botoes.botoes1[2].y = y_inicio_grupo1 + 2 * (altura_botao + espacamento);
     botoes.botoes1[2].largura = largura_botao;
     botoes.botoes1[2].altura = altura_botao;
-    botoes.botoes1[2].acao = MODO_SELECIONAR_POLIGONO;
+    botoes.botoes1[2].acao = MODO_SELECIONAR_PONTO;
+
+    strcpy(botoes.botoes1[3].texto, "Operar Poligono");
+    botoes.botoes1[3].x = margem;
+    botoes.botoes1[3].y = y_inicio_grupo1 + 3 * (altura_botao + espacamento);
+    botoes.botoes1[3].largura = largura_botao;
+    botoes.botoes1[3].altura = altura_botao;
+    botoes.botoes1[3].acao = MODO_SELECIONAR_POLIGONO;
+
+    strcpy(botoes.botoes1[4].texto, "Selecionar Curva");
+    botoes.botoes1[4].x = margem;
+    botoes.botoes1[4].y = y_inicio_grupo1 + 4 * (altura_botao + espacamento);
+    botoes.botoes1[4].largura = largura_botao;
+    botoes.botoes1[4].altura = altura_botao;
+    botoes.botoes1[4].acao =  MODO_SELEICIONAR_CURVA;
 
     // === BOTÕES DE POLÍGONO (Grupo 2) ===
-    int y_inicio_grupo2 = y_inicio_grupo1 + 3 * (altura_botao + espacamento) + altura_janela * 0.03;
+    int y_inicio_grupo2 = y_inicio_grupo1 + 5 * (altura_botao + espacamento) + altura_janela * 0.03;
     
     strcpy(botoes.botoes2[0].texto, "Poligono Aberto");
     botoes.botoes2[0].x = margem;
@@ -258,7 +273,7 @@ void desenhar_botao_generico(void *botao, TipoBotao tipo, int indice) {
 
 void desenhar_botoes_menu() {
     // Botões de criação/seleção
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 5; i++) {
         desenhar_botao_generico(&botoes.botoes1[i], TIPO_BOTAO1, i);
     }
     

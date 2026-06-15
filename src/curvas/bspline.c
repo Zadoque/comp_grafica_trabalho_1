@@ -48,7 +48,7 @@ void subdivide(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, 
     }
 }
 
-void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, vec *vetor_parametro) {
+void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado) {
   curva_resultado->quantidade_atual = 0;
   ponto A = calcular_ponto_bspline(P0, P1, P2, P3,0.0f);
   pontos_push(curva_resultado, A);
