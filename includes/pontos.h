@@ -18,6 +18,12 @@ typedef enum {
 } CurveType;
 
 typedef struct {
+    int   segmento_indice;  // qual segmento foi clicado (-1 se nenhum)
+    float t;                // parâmetro no segmento [0,1]
+    float distancia;        // distância real ao ponto — útil para desempate
+} ResultadoPicking;
+
+typedef struct {
   float point[3];
 } ponto;
 

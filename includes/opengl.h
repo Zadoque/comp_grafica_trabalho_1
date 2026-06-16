@@ -4,6 +4,7 @@
 #include "pontos.h"
 #include "vetor.h"
 #include "menu.h"
+#include "aabb.h"
 
 // Incluir todas as curvas
 #include "curvas/hermite.h"

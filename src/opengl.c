@@ -11,7 +11,8 @@ Selecao selecao_ponto;
 int selecao_poligono;
 ponto centro;
 int precisa_refazer_curva = 0;
-vec vetor_parametro;
+AABB_vec vetor_boxes;
+AABBTREE *arvore_boxes = NULL;
 // Configurações visuais
 static float cor_fundo[3] = {0.2f, 0.3f, 0.4f};
 
@@ -23,7 +24,7 @@ void initGL() {
   // Inicializar estrutura para curva
   pontos_init(&g_curva_atual, 100);
   pontos_init(&g_clicks, 20);
-  vec_init(&vetor_parametro);
+  aabb_vec_init(&vetor_boxes, 20);
   selecao_ponto.selecionado = 0;
   selecao_ponto.indice = 0;
   selecao_poligono = 0;
@@ -89,12 +90,16 @@ void gerar_curva_selecionada() {
     break;
   case MODO_CURVA_BSPLINE:
     glColor3f(1.0f, 0.5f, 0.0f); // Laranja
+    AABB box;
+    vetor_boxes.quantidade = 0;
     for(int i = 0; i <= g_clicks.quantidade_atual - 4; i++){
       P0 = g_clicks.data[i];
       P1 =  g_clicks.data[i + 1];
       P2 =  g_clicks.data[i + 2];
       P3 =  g_clicks.data[i + 3];
-      gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual);
+      box.segmento_indice = i;
+      gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual, &box);
+      aabb_vec_push(&vetor_boxes, box);
       estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
       desenhar_curva_atual();
     }
@@ -104,11 +109,14 @@ void gerar_curva_selecionada() {
         P1 = g_clicks.data[(g_clicks.quantidade_atual - 2 + i) % g_clicks.quantidade_atual];
         P2 = g_clicks.data[(g_clicks.quantidade_atual - 1 + i) % g_clicks.quantidade_atual];
         P3 = g_clicks.data[(g_clicks.quantidade_atual + i)     % g_clicks.quantidade_atual];
-        gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual);
+        box.segmento_indice = vetor_boxes.quantidade;
+        gerar_curva_bspline(P0, P1, P2, P3, &g_curva_atual, &box);
+        aabb_vec_push(&vetor_boxes, box);
         estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
         desenhar_curva_atual();
       }
     }
+    //Não chamo a função para transformar em árvore aqui, apenas quando os pontos de controle mudarem e tiver a soltura do mouse
     break;
 
   case MODO_CURVA_CATMULLROM:
@@ -305,6 +313,9 @@ void processar_clique_desenho(int x, int y) {
         }
       }
     break;
+  case MODO_SELEICIONAR_CURVA:
+    printf("Modo selecionar curva is on board");
+    break;
   case MODO_SELECIONAR_POLIGONO:
     switch (estado_atual.operacao) {
     case TRANSLACAO:
@@ -352,6 +363,7 @@ void processar_clique_desenho(int x, int y) {
     case NENHUMA:
       break;
     }
+
   }
 }
 int traduzCoordenadaX(int x) {
@@ -478,6 +490,10 @@ void onMouse(int button, int state, int x, int y) {
         processar_clique_menu(x - largura_desenho, y);
       }
     } else {
+      // Libera árvore anterior antes de recriar
+      aabb_tree_free(arvore_boxes);
+      arvore_boxes = aabb_vec_para_arvore(&vetor_boxes);
+      printf("\n\tteoricamente deu certo\n");
       if (selecao_ponto.selecionado) {
         selecao_ponto.selecionado = 0;
         selecao_ponto.indice = 0;

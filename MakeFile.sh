@@ -31,6 +31,7 @@ SRC_FILES=(
   src/menu.c
   src/matriz.c
   src/vetor.c
+  src/aabb.c
   src/transformacoes.c
   src/curvas/hermite.c
   src/curvas/bezier.c
