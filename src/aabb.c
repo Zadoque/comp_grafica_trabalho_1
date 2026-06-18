@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include "./../includes/aabb.h"
 #include <math.h>
+#ifndef FLT_MAX
+#define FLT_MAX 999999999.0f
+#endif
 int ponto_dentro_aabb(AABB box, float px, float py) {
     // Cada comparação retorna 0 ou 1 como int
     return (px >= box.x_min) & (px <= box.x_max) &
@@ -75,4 +78,18 @@ void aabb_tree_free(AABBTREE* no) {
     aabb_tree_free(no->esquerda);
     aabb_tree_free(no->direita);
     free(no);
+}
+
+void reset_box(AABB *box){
+  box->x_min =  FLT_MAX;
+  box->y_min = FLT_MAX;
+  box->x_max = FLT_MAX * (-1.0f);
+  box->y_max = FLT_MAX * (-1.0f);
+}
+
+float calcula_area_box(AABB *box) {
+  if (!box) return 0.0f;
+  float largura = fabsf(box->x_max - box->x_min);
+  float altura = fabsf(box->y_max - box->y_min);
+  return largura * altura;
 }

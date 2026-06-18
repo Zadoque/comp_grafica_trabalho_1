@@ -29,7 +29,7 @@ void initGL();
 void AlteraTamanhoJanela(int w, int h);
 void display();
 void desenhar_conteudo_principal();
-
+void desenhar_aabbs(AABB_vec* v);
 // Novas funções para curvas
 void gerar_curva_selecionada();
 void desenhar_curva_atual();

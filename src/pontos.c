@@ -92,3 +92,11 @@ float calcula_dist_ponto_segmento(ponto x, ponto A, ponto B) {
 
     return (float)sqrt(dx * dx + dy * dy);
 }
+
+ponto lerp_ponto(ponto A, ponto B, float t) {
+    ponto r;
+    r.point[0] = A.point[0] + t * (B.point[0] - A.point[0]);
+    r.point[1] = A.point[1] + t * (B.point[1] - A.point[1]);
+    r.point[2] = 1.0f;
+    return r;
+}

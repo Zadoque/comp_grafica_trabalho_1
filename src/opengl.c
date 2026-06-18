@@ -3,7 +3,9 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <stdio.h>
-
+#ifndef FLT_MAX
+#define FLT_MAX  99999999.0f
+#endif
 // Variáveis globais
 Pontos g_clicks;
 Pontos g_curva_atual; // Nova: armazenar pontos da curva gerada
@@ -33,7 +35,37 @@ void initGL() {
   centro.point[2] = 1;
   printf("OpenGL inicializado com sucesso!\n");
 }
+static int profundidade_arvore(AABBTREE* no) {
+    if (no == NULL) return 0;
+    int e = profundidade_arvore(no->esquerda);
+    int d = profundidade_arvore(no->direita);
+    return 1 + (e > d ? e : d);
+}
 
+static void desenhar_no_arvore(AABBTREE* no, int profundidade, int prof_max) {
+    if (no == NULL) return;
+
+    float t = (prof_max > 0) ? (float)profundidade / (float)prof_max : 0.0f;
+    glColor3f(1.0f - t, t * 0.8f, t);
+    glLineWidth(fmaxf(1.0f, 4.0f - profundidade * 0.5f));
+
+    glBegin(GL_LINE_LOOP);
+        glVertex2f(no->box.x_min, no->box.y_min);
+        glVertex2f(no->box.x_max, no->box.y_min);
+        glVertex2f(no->box.x_max, no->box.y_max);
+        glVertex2f(no->box.x_min, no->box.y_max);
+    glEnd();
+
+    desenhar_no_arvore(no->esquerda,  profundidade + 1, prof_max);
+    desenhar_no_arvore(no->direita,   profundidade + 1, prof_max);
+}
+
+void desenhar_arvore_aabb(AABBTREE* raiz) {
+    if (raiz == NULL) return;
+    int prof_max = profundidade_arvore(raiz) - 1;
+    desenhar_no_arvore(raiz, 0, prof_max);
+    glLineWidth(1.0f);
+}
 void gerar_curva_selecionada() {
   if (g_clicks.quantidade_atual < 4) return;
   if (precisa_refazer_curva == 0) return;
@@ -116,6 +148,8 @@ void gerar_curva_selecionada() {
         desenhar_curva_atual();
       }
     }
+    //desenhar_arvore_aabb(arvore_boxes);
+    //desenhar_aabbs(&vetor_boxes);
     //Não chamo a função para transformar em árvore aqui, apenas quando os pontos de controle mudarem e tiver a soltura do mouse
     break;
 
@@ -134,7 +168,32 @@ void gerar_curva_selecionada() {
   }
   sprintf(estado_atual.qtd_nuvem_pontos, "%d", estado_atual.qtd_nuvem_pontos_number);
 }
+void desenhar_aabbs(AABB_vec* v) {
+    if (v == NULL || v->quantidade == 0) return;
 
+    for (int i = 0; i < v->quantidade; i++) {
+        // Varia a cor pelo índice — ciclo por matiz HSV simples
+        float t = (float)i / (float)(v->quantidade);
+        // R G B variando em ciclos defasados
+        float r = 0.5f + 0.5f * sinf(t * 6.2831f);
+        float g = 0.5f + 0.5f * sinf(t * 6.2831f + 2.094f); // +120 graus
+        float b = 0.5f + 0.5f * sinf(t * 6.2831f + 4.189f); // +240 graus
+        glColor3f(r, g, b);
+
+        float x0 = v->dados[i].x_min;
+        float y0 = v->dados[i].y_min;
+        float x1 = v->dados[i].x_max;
+        float y1 = v->dados[i].y_max;
+
+        // Desenha os 4 lados da caixa
+        glBegin(GL_LINE_LOOP);
+            glVertex2f(x0, y0);
+            glVertex2f(x1, y0);
+            glVertex2f(x1, y1);
+            glVertex2f(x0, y1);
+        glEnd();
+    }
+}
 void desenhar_curva_atual() {
   glLineWidth(0.1f);
   glBegin(GL_LINE_STRIP);
@@ -314,7 +373,10 @@ void processar_clique_desenho(int x, int y) {
       }
     break;
   case MODO_SELEICIONAR_CURVA:
-    printf("Modo selecionar curva is on board");
+    ResultadoPicking resultado = picking_bspline(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
+    if(resultado.segmento_indice != -1){
+      printf("\n\tPonto encontrado: na curva: %d, com parâmetro t: %f", resultado.segmento_indice, resultado.t);
+    }
     break;
   case MODO_SELECIONAR_POLIGONO:
     switch (estado_atual.operacao) {
@@ -492,6 +554,7 @@ void onMouse(int button, int state, int x, int y) {
     } else {
       // Libera árvore anterior antes de recriar
       aabb_tree_free(arvore_boxes);
+      printf("a quantidade de caixas é: %d", vetor_boxes.quantidade);
       arvore_boxes = aabb_vec_para_arvore(&vetor_boxes);
       printf("\n\tteoricamente deu certo\n");
       if (selecao_ponto.selecionado) {

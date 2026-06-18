@@ -46,4 +46,5 @@ double raiz_quadrada_newton(double n);
 */
 float calcula_distancia(ponto P1, ponto P2);
 float calcula_dist_ponto_segmento(ponto x, ponto A, ponto B); 
+ponto lerp_ponto(ponto A, ponto B, float t);
 #endif
