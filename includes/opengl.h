@@ -24,6 +24,11 @@ typedef struct {
       int indice;
       int selecionado;
 } Selecao;
+
+typedef struct {
+  int seg_curva; //-1 se nenhum
+  float t;
+} Selecao_curva;
 // Funções existentes...
 void initGL();
 void AlteraTamanhoJanela(int w, int h);

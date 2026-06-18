@@ -23,4 +23,5 @@ void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3,
 ResultadoPicking picking_bspline(AABBTREE *arvore, Pontos *clicks,
                                   ponto mouse, float tolerancia, float melhor_dist);
 
+void arrastar_ponto_bspline(Pontos *clicks, int segmento_indice, float ti, ponto mouse);
 #endif // BSPLINE_H

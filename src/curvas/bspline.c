@@ -164,8 +164,7 @@ ResultadoPicking picking_bspline(AABBTREE* arvore, Pontos* clicks,
     float dist_caixa = dist_mouse_aabb(mouse, arvore->box);
 
     // Poda: fora da caixa E mais longe que a melhor distância já encontrada
-    if (dist_caixa > tolerancia && dist_caixa > melhor_dist)
-        return sem_resultado;
+  if (dist_caixa > tolerancia || (melhor_dist != FLT_MAX && dist_caixa > melhor_dist)) return sem_resultado;
 
     // Nó folha — refina com subdivisão
     if (arvore->esquerda == NULL && arvore->direita == NULL) {
@@ -204,4 +203,57 @@ ResultadoPicking picking_bspline(AABBTREE* arvore, Pontos* clicks,
         if (esq.distancia < melhor.distancia) melhor = esq;
     }
     return melhor;
+}
+static void pesos_bspline_cubica(float t, float B[4]) {
+    float t2 = t * t;
+    float t3 = t2 * t;
+
+    B[0] = (-t3 + 3.0f*t2 - 3.0f*t + 1.0f) / 6.0f;
+    B[1] = ( 3.0f*t3 - 6.0f*t2 + 4.0f) / 6.0f;
+    B[2] = (-3.0f*t3 + 3.0f*t2 + 3.0f*t + 1.0f) / 6.0f;
+    B[3] = t3 / 6.0f;
+}
+
+void arrastar_ponto_bspline(Pontos *clicks, int segmento_indice, float ti, ponto mouse) {
+    if (clicks == NULL || clicks->quantidade_atual < 4) return;
+
+    int n = clicks->quantidade_atual;
+
+    int i0 = (segmento_indice + 0) % n;
+    int i1 = (segmento_indice + 1) % n;
+    int i2 = (segmento_indice + 2) % n;
+    int i3 = (segmento_indice + 3) % n;
+
+    ponto P0 = clicks->data[i0];
+    ponto P1 = clicks->data[i1];
+    ponto P2 = clicks->data[i2];
+    ponto P3 = clicks->data[i3];
+
+    ponto C = calcular_ponto_bspline(P0, P1, P2, P3, ti);
+
+    float ex = mouse.point[0] - C.point[0];
+    float ey = mouse.point[1] - C.point[1];
+
+    float B[4];
+    pesos_bspline_cubica(ti, B);
+
+    float soma_quadrados =
+        B[0]*B[0] + B[1]*B[1] + B[2]*B[2] + B[3]*B[3];
+
+    if (soma_quadrados < 1e-8f) return;
+
+    float fx = ex / soma_quadrados;
+    float fy = ey / soma_quadrados;
+
+    clicks->data[i0].point[0] += fx * B[0];
+    clicks->data[i0].point[1] += fy * B[0];
+
+    clicks->data[i1].point[0] += fx * B[1];
+    clicks->data[i1].point[1] += fy * B[1];
+
+    clicks->data[i2].point[0] += fx * B[2];
+    clicks->data[i2].point[1] += fy * B[2];
+
+    clicks->data[i3].point[0] += fx * B[3];
+    clicks->data[i3].point[1] += fy * B[3];
 }

@@ -10,6 +10,7 @@
 Pontos g_clicks;
 Pontos g_curva_atual; // Nova: armazenar pontos da curva gerada
 Selecao selecao_ponto;
+Selecao_curva selecao_curva;
 int selecao_poligono;
 ponto centro;
 int precisa_refazer_curva = 0;
@@ -149,7 +150,7 @@ void gerar_curva_selecionada() {
       }
     }
     //desenhar_arvore_aabb(arvore_boxes);
-    //desenhar_aabbs(&vetor_boxes);
+    desenhar_aabbs(&vetor_boxes);
     //Não chamo a função para transformar em árvore aqui, apenas quando os pontos de controle mudarem e tiver a soltura do mouse
     break;
 
@@ -350,6 +351,8 @@ void processar_clique_desenho(int x, int y) {
         }
         g_clicks.quantidade_atual--;
         sprintf(estado_atual.qtd_pontos_controle, "%d", g_clicks.quantidade_atual); 
+        calcular_centro_medio(&centro, &g_clicks);
+        precisa_refazer_curva = 1;
         glutPostRedisplay();
         break;
       }
@@ -373,9 +376,12 @@ void processar_clique_desenho(int x, int y) {
       }
     break;
   case MODO_SELEICIONAR_CURVA:
-    ResultadoPicking resultado = picking_bspline(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
-    if(resultado.segmento_indice != -1){
-      printf("\n\tPonto encontrado: na curva: %d, com parâmetro t: %f", resultado.segmento_indice, resultado.t);
+    if(estado_atual.curva == MODO_CURVA_BSPLINE){
+      ResultadoPicking resultado = picking_bspline(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
+      if(resultado.segmento_indice != -1){
+        selecao_curva.seg_curva = resultado.segmento_indice;
+        selecao_curva.t =  resultado.t;
+      }
     }
     break;
   case MODO_SELECIONAR_POLIGONO:
@@ -556,13 +562,15 @@ void onMouse(int button, int state, int x, int y) {
       aabb_tree_free(arvore_boxes);
       printf("a quantidade de caixas é: %d", vetor_boxes.quantidade);
       arvore_boxes = aabb_vec_para_arvore(&vetor_boxes);
-      printf("\n\tteoricamente deu certo\n");
       if (selecao_ponto.selecionado) {
         selecao_ponto.selecionado = 0;
         selecao_ponto.indice = 0;
       }
       if (selecao_poligono) {
         selecao_poligono = 0;
+      }
+      if(selecao_curva.seg_curva >= 0){
+        selecao_curva.seg_curva = -1;
       }
     }
   }
@@ -637,7 +645,12 @@ void onMotion(int x, int y) {
   ponto mouse;
   mouse.point[0] = x;
   mouse.point[1] = y;
-  if (selecao_ponto.selecionado) {
+  if(selecao_curva.seg_curva >=0){
+    arrastar_ponto_bspline(&g_clicks, selecao_curva.seg_curva, selecao_curva.t, mouse);
+    calcular_centro_medio(&centro, &g_clicks);
+    precisa_refazer_curva = 1;
+    glutPostRedisplay();
+  } else if (selecao_ponto.selecionado) {
     g_clicks.data[selecao_ponto.indice].point[0] = x;
     g_clicks.data[selecao_ponto.indice].point[1] = y;
     calcular_centro_medio(&centro, &g_clicks);
