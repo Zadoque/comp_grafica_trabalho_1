@@ -28,6 +28,7 @@ typedef struct {
 typedef struct {
   int seg_curva; //-1 se nenhum
   float t;
+  Curva curva_selecionada; 
 } Selecao_curva;
 // Funções existentes...
 void initGL();

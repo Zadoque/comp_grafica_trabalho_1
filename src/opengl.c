@@ -3,6 +3,7 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <stdio.h>
+#include <stdlib.h>
 #ifndef FLT_MAX
 #define FLT_MAX  99999999.0f
 #endif
@@ -150,7 +151,7 @@ void gerar_curva_selecionada() {
       }
     }
     //desenhar_arvore_aabb(arvore_boxes);
-    desenhar_aabbs(&vetor_boxes);
+    desenhar_aabbs(&vetor_boxes); //apenas para debug
     //Não chamo a função para transformar em árvore aqui, apenas quando os pontos de controle mudarem e tiver a soltura do mouse
     break;
 
@@ -376,12 +377,28 @@ void processar_clique_desenho(int x, int y) {
       }
     break;
   case MODO_SELEICIONAR_CURVA:
-    if(estado_atual.curva == MODO_CURVA_BSPLINE){
-      ResultadoPicking resultado = picking_bspline(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
-      if(resultado.segmento_indice != -1){
-        selecao_curva.seg_curva = resultado.segmento_indice;
-        selecao_curva.t =  resultado.t;
-      }
+    switch (estado_atual.curva) {
+      case MODO_CURVA_BSPLINE:
+        ResultadoPicking resultado = picking_bspline(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
+        if(resultado.segmento_indice != -1){
+          selecao_curva.seg_curva = resultado.segmento_indice;
+          selecao_curva.t =  resultado.t;
+          selecao_curva.curva_selecionada = MODO_CURVA_BSPLINE;
+        }
+        break;
+      case MODO_CURVA_BEZIER:
+        //implementar aqui
+        break;
+      case MODO_CURVA_HERMITE:
+        //implementar aqui
+        break;
+      case MODO_CURVA_CATMULLROM:
+        //implementar aqui
+        break;
+      default:
+        printf("\n\tNão era para ser possível chegar aqui.");
+        exit(-1);
+        break;
     }
     break;
   case MODO_SELECIONAR_POLIGONO:
@@ -646,11 +663,28 @@ void onMotion(int x, int y) {
   mouse.point[0] = x;
   mouse.point[1] = y;
   if(selecao_curva.seg_curva >=0){
-    arrastar_ponto_bspline(&g_clicks, selecao_curva.seg_curva, selecao_curva.t, mouse);
-    calcular_centro_medio(&centro, &g_clicks);
-    precisa_refazer_curva = 1;
-    glutPostRedisplay();
-  } else if (selecao_ponto.selecionado) {
+    switch (selecao_curva.curva_selecionada) {
+      case MODO_CURVA_BSPLINE:
+        arrastar_ponto_bspline(&g_clicks, selecao_curva.seg_curva, selecao_curva.t, mouse);
+        calcular_centro_medio(&centro, &g_clicks);
+        precisa_refazer_curva = 1;
+        glutPostRedisplay();
+        break;
+      case MODO_CURVA_HERMITE:
+        //implementar  aqui
+        break;
+      case MODO_CURVA_BEZIER:
+        //implementar aqui
+        break;
+      case MODO_CURVA_CATMULLROM:
+        //implementar aqui
+        break;
+      default:
+        printf("\n\tNão era para chegar aqui");
+        exit(-1);
+        break;
+    }
+ } else if (selecao_ponto.selecionado) {
     g_clicks.data[selecao_ponto.indice].point[0] = x;
     g_clicks.data[selecao_ponto.indice].point[1] = y;
     calcular_centro_medio(&centro, &g_clicks);
