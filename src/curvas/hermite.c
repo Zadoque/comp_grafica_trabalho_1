@@ -1,68 +1,179 @@
 #include "../../includes/curvas/hermite.h"
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#ifndef FLT_MAX
+#define FLT_MAX 99999999.0f
+#endif
 
-// #include <math.h>
-// #include <stdio.h>
-
-// Matriz de Hermite (corrigida)
 static const float MATRIZ_HERMITE[4][4] = {
-    {2.0f, -2.0f, 1.0f, 1.0f},   // 2t³ - 2t² + t + 1
-    {-3.0f, 3.0f, -2.0f, -1.0f}, // -3t³ + 3t² - 2t - 1
-    {0.0f, 0.0f, 1.0f, 0.0f},    // t
-    {1.0f, 0.0f, 0.0f, 0.0f}     // 1
-};
+    { 2.0f, -2.0f,  1.0f,  1.0f},
+    {-3.0f,  3.0f, -2.0f, -1.0f},
+    { 0.0f,  0.0f,  1.0f,  0.0f},
+    { 1.0f,  0.0f,  0.0f,  0.0f}};
 
+// Hermite recebe: P1, P2 (pontos), T1, T2 (tangentes)
 ponto calcular_ponto_hermite(ponto P1, ponto P2, ponto T1, ponto T2, float t) {
-  // Vetor de parâmetros [t³, t², t, 1]
-  float t2 = t * t;
-  float t3 = t2 * t;
-  float vetor_t[4] = {t3, t2, t, 1.0f};
-
-  // Multiplicar: vetor_t × MATRIZ_HERMITE
-  float coeficientes[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      coeficientes[i] += vetor_t[j] * MATRIZ_HERMITE[j][i];
-    }
-  }
-
-  // Aplicar aos pontos de controle: P(t) = c₀P₁ + c₁P₂ + c₂T₁ + c₃T₂
-  ponto resultado;
-  resultado.point[0] = coeficientes[0] * P1.point[0] + coeficientes[1] * P2.point[0] +
-                coeficientes[2] * T1.point[0] + coeficientes[3] * T2.point[0];
-  resultado.point[1] = coeficientes[0] * P1.point[1] + coeficientes[1] * P2.point[1] +
-                coeficientes[2] * T1.point[1] + coeficientes[3] * T2.point[1];
-
-  return resultado;
-}
-void calcular_tangentes_hermite(ponto P1, ponto P2, ponto P3, ponto P4,
-                                ponto *T1, ponto *T2) {
-  T1->point[0] = P2.point[0] - P1.point[1];
-  T1->point[1] = P2.point[1] - P1.point[1];
-  T2->point[0] = P4.point[0] - P3.point[0];
-  T2->point[1] = P4.point[1] - P3.point[1];
+    float t2 = t*t, t3 = t2*t;
+    float vetor_t[4] = {t3, t2, t, 1.0f};
+    float c[4] = {0};
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            c[i] += vetor_t[j] * MATRIZ_HERMITE[j][i];
+    ponto r;
+    r.point[0] = c[0]*P1.point[0] + c[1]*P2.point[0] + c[2]*T1.point[0] + c[3]*T2.point[0];
+    r.point[1] = c[0]*P1.point[1] + c[1]*P2.point[1] + c[2]*T1.point[1] + c[3]*T2.point[1];
+    return r;
 }
 
-void subdivide_Hermite(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, float t0, float t1, float tolerance) {
-    ponto A = calcular_ponto_hermite(P0,P1,P2,P3, t0);
-    ponto B = calcular_ponto_hermite(P0,P1,P2,P3, t1);
-    ponto M = calcular_ponto_hermite(P0,P1,P2,P3, (t0+t1)/2);
-    
-    float dist = calcula_dist_ponto_segmento(M, A, B);
-    
-    if (dist < tolerance) {
-       pontos_push(curva_resultado, M);
+void calcular_tangentes_hermite(ponto P0, ponto P1, ponto P2, ponto P3,
+                                 ponto *T1, ponto *T2) {
+    T1->point[0] = P2.point[0] - P0.point[0];
+    T1->point[1] = P2.point[1] - P0.point[1];
+    T2->point[0] = P3.point[0] - P1.point[0];
+    T2->point[1] = P3.point[1] - P1.point[1];
+}
+
+// Wrapper para subdivide: usa os 4 clicks para derivar P1,P2,T1,T2
+static ponto hermite_eval(ponto P0, ponto P1, ponto P2, ponto P3, float t) {
+    ponto T1, T2;
+    calcular_tangentes_hermite(P0, P1, P2, P3, &T1, &T2);
+    return calcular_ponto_hermite(P1, P2, T1, T2, t);
+}
+
+static void subdivide_hermite(ponto P0, ponto P1, ponto P2, ponto P3,
+                               Pontos *curva, ponto A, ponto B,
+                               float t0, float t1, float tol, AABB *box) {
+    float tmid = (t0+t1)/2.0f;
+    ponto M = hermite_eval(P0,P1,P2,P3, tmid);
+    if (calcula_dist_ponto_segmento(M, A, B) < tol) {
+        pontos_push(curva, M);
+        box->x_min = fminf(box->x_min, M.point[0]); box->y_min = fminf(box->y_min, M.point[1]);
+        box->x_max = fmaxf(box->x_max, M.point[0]); box->y_max = fmaxf(box->y_max, M.point[1]);
     } else {
-        subdivide_Hermite(P0, P1, P2, P3, curva_resultado, t0, (t0+t1)/2, tolerance);
-        subdivide_Hermite(P0, P1, P2, P3, curva_resultado, (t0+t1)/2, t1, tolerance);
+        subdivide_hermite(P0,P1,P2,P3, curva, A, M, t0, tmid, tol, box);
+        subdivide_hermite(P0,P1,P2,P3, curva, M, B, tmid, t1, tol, box);
     }
 }
-void gerar_curva_hermite(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado) {
-  ponto T1, T2;
-  calcular_tangentes_hermite(P0, P1, P2, P3, &T1, &T2);
-  curva_resultado->quantidade_atual = 0;
-  ponto A = calcular_ponto_hermite(P0, P1, T1, T2,0.0f);
-  pontos_push(curva_resultado, A);
-  subdivide_Hermite(P0, P1, P2, P3, curva_resultado, 0.0f, 1.0f, 0.1f);
-  ponto B = calcular_ponto_hermite(P0,P1,P2,P3, 1.0f);
-  pontos_push(curva_resultado, B);
- }
+
+void gerar_curva_hermite(ponto P0, ponto P1, ponto P2, ponto P3,
+                          Pontos *curva, AABB *box) {
+    curva->quantidade_atual = 0;
+    ponto A = hermite_eval(P0,P1,P2,P3, 0.0f);
+    ponto B = hermite_eval(P0,P1,P2,P3, 1.0f);
+    box->x_min = fminf(A.point[0], B.point[0]); box->y_min = fminf(A.point[1], B.point[1]);
+    box->x_max = fmaxf(A.point[0], B.point[0]); box->y_max = fmaxf(A.point[1], B.point[1]);
+    pontos_push(curva, A);
+    subdivide_hermite(P0,P1,P2,P3, curva, A, B, 0.0f, 1.0f, 0.1f, box);
+    pontos_push(curva, B);
+}
+
+static float dist_mouse_aabb_h(ponto mouse, AABB box) {
+    float dx = fmaxf(0.0f, fmaxf(box.x_min - mouse.point[0], mouse.point[0] - box.x_max));
+    float dy = fmaxf(0.0f, fmaxf(box.y_min - mouse.point[1], mouse.point[1] - box.y_max));
+    return sqrtf(dx*dx + dy*dy);
+}
+
+static void criar_box_picking_h(ponto P0, ponto P1, ponto P2, ponto P3,
+                                  ponto A, ponto B, float t0, float t1,
+                                  float tol, AABB *box, int lado) {
+    float tmid = (t0+t1)/2.0f;
+    ponto M = hermite_eval(P0,P1,P2,P3, tmid);
+    if (calcula_dist_ponto_segmento(M, A, B) < tol) {
+        box->x_min = fminf(box->x_min, M.point[0]); box->y_min = fminf(box->y_min, M.point[1]);
+        box->x_max = fmaxf(box->x_max, M.point[0]); box->y_max = fmaxf(box->y_max, M.point[1]);
+    } else {
+        if (lado == 0) criar_box_picking_h(P0,P1,P2,P3, A, M, t0, tmid, tol, box, 0);
+        else           criar_box_picking_h(P0,P1,P2,P3, M, B, tmid, t1, tol, box, 1);
+    }
+}
+
+static ResultadoPicking subdivide_picking_hermite(
+        ponto P0, ponto P1, ponto P2, ponto P3, ponto mouse,
+        float t0, float t1, float melhor_dist, float tolerancia_t) {
+    ResultadoPicking sem = { -1, 0.0f, FLT_MAX };
+    if ((t1-t0) < tolerancia_t) {
+        float tmid = (t0+t1)/2.0f;
+        ponto p = hermite_eval(P0,P1,P2,P3, tmid);
+        float dx = p.point[0]-mouse.point[0], dy = p.point[1]-mouse.point[1];
+        ResultadoPicking r = { 0, tmid, sqrtf(dx*dx+dy*dy) }; return r;
+    }
+    float tmid = (t0+t1)/2.0f;
+    ponto A = hermite_eval(P0,P1,P2,P3, t0);
+    ponto M = hermite_eval(P0,P1,P2,P3, tmid);
+    ponto B = hermite_eval(P0,P1,P2,P3, t1);
+    AABB be; reset_box(&be); criar_box_picking_h(P0,P1,P2,P3, A, M, t0, tmid, 0.1f, &be, 0);
+    AABB bd; reset_box(&bd); criar_box_picking_h(P0,P1,P2,P3, M, B, tmid, t1, 0.1f, &bd, 1);
+    float de = dist_mouse_aabb_h(mouse, be), dd = dist_mouse_aabb_h(mouse, bd);
+    ResultadoPicking melhor = sem;
+    if (de <= dd) {
+        if (de < melhor_dist) melhor = subdivide_picking_hermite(P0,P1,P2,P3, mouse, t0, tmid, melhor_dist, tolerancia_t);
+        float lim = (melhor.segmento_indice != -1) ? melhor.distancia : melhor_dist;
+        if (dd < lim) { ResultadoPicking r = subdivide_picking_hermite(P0,P1,P2,P3, mouse, tmid, t1, lim, tolerancia_t); if (r.distancia < melhor.distancia) melhor = r; }
+    } else {
+        if (dd < melhor_dist) melhor = subdivide_picking_hermite(P0,P1,P2,P3, mouse, tmid, t1, melhor_dist, tolerancia_t);
+        float lim = (melhor.segmento_indice != -1) ? melhor.distancia : melhor_dist;
+        if (de < lim) { ResultadoPicking r = subdivide_picking_hermite(P0,P1,P2,P3, mouse, t0, tmid, lim, tolerancia_t); if (r.distancia < melhor.distancia) melhor = r; }
+    }
+    return melhor;
+}
+
+static void pesos_hermite(float t, float B[4]) {
+    float t2 = t*t, t3 = t2*t;
+    B[0] = 2.0f*t3 - 3.0f*t2 + 1.0f;
+    B[1] = -2.0f*t3 + 3.0f*t2;
+    B[2] = t3 - 2.0f*t2 + t;
+    B[3] = t3 - t2;
+}
+
+void arrastar_ponto_hermite(Pontos *clicks, int seg, float ti, ponto mouse) {
+    if (!clicks || clicks->quantidade_atual < 4) return;
+    int n = clicks->quantidade_atual;
+    int i0 = (seg+0)%n, i1 = (seg+1)%n, i2 = (seg+2)%n, i3 = (seg+3)%n;
+    ponto P0 = clicks->data[i0], P1 = clicks->data[i1];
+    ponto P2 = clicks->data[i2], P3 = clicks->data[i3];
+    ponto T1, T2; calcular_tangentes_hermite(P0,P1,P2,P3, &T1, &T2);
+    ponto C = calcular_ponto_hermite(P1, P2, T1, T2, ti);
+    float ex = mouse.point[0]-C.point[0], ey = mouse.point[1]-C.point[1];
+    float B[4]; pesos_hermite(ti, B);
+    float soma = B[0]*B[0]+B[1]*B[1]+B[2]*B[2]+B[3]*B[3];
+    if (soma < 1e-8f) return;
+    float fx = ex/soma, fy = ey/soma;
+    // Hermite interpola P1 e P2 — arrasta os pontos P1 e P2 diretamente
+    clicks->data[i1].point[0] += fx*B[0]; clicks->data[i1].point[1] += fy*B[0];
+    clicks->data[i2].point[0] += fx*B[1]; clicks->data[i2].point[1] += fy*B[1];
+    // Tangentes afetam indiretamente via P0 e P3
+    clicks->data[i0].point[0] -= fx*B[2]; clicks->data[i0].point[1] -= fy*B[2];
+    clicks->data[i3].point[0] += fx*B[3]; clicks->data[i3].point[1] += fy*B[3];
+}
+
+ResultadoPicking picking_hermite(AABBTREE *arvore, Pontos *clicks,
+                                  ponto mouse, float tolerancia, float melhor_dist) {
+    ResultadoPicking sem = { -1, 0.0f, FLT_MAX };
+    if (!arvore) return sem;
+    float dc = dist_mouse_aabb_h(mouse, arvore->box);
+    if (dc > tolerancia && dc > melhor_dist) return sem;
+    if (arvore->esquerda == NULL && arvore->direita == NULL) {
+        int i = arvore->box.segmento_indice, n = clicks->quantidade_atual;
+        ponto P0 = clicks->data[i%n], P1 = clicks->data[(i+1)%n];
+        ponto P2 = clicks->data[(i+2)%n], P3 = clicks->data[(i+3)%n];
+        ResultadoPicking r = subdivide_picking_hermite(P0,P1,P2,P3, mouse, 0.0f, 1.0f, FLT_MAX, 0.001f);
+        r.segmento_indice = (r.distancia <= tolerancia) ? i : -1;
+        return r;
+    }
+    float de = arvore->esquerda ? dist_mouse_aabb_h(mouse, arvore->esquerda->box) : FLT_MAX;
+    float dd = arvore->direita  ? dist_mouse_aabb_h(mouse, arvore->direita->box)  : FLT_MAX;
+    ResultadoPicking melhor = sem;
+    if (de <= dd) {
+        melhor = picking_hermite(arvore->esquerda, clicks, mouse, tolerancia, melhor_dist);
+        float lim = (melhor.segmento_indice != -1) ? melhor.distancia : melhor_dist;
+        ResultadoPicking r = picking_hermite(arvore->direita, clicks, mouse, tolerancia, lim);
+        if (r.distancia < melhor.distancia) melhor = r;
+    } else {
+        melhor = picking_hermite(arvore->direita, clicks, mouse, tolerancia, melhor_dist);
+        float lim = (melhor.segmento_indice != -1) ? melhor.distancia : melhor_dist;
+        ResultadoPicking r = picking_hermite(arvore->esquerda, clicks, mouse, tolerancia, lim);
+        if (r.distancia < melhor.distancia) melhor = r;
+    }
+    return melhor;
+}

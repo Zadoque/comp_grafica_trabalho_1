@@ -75,54 +75,64 @@ void gerar_curva_selecionada() {
   ponto P0, P1, P2, P3;
   estado_atual.qtd_nuvem_pontos_number = 0;
   switch (estado_atual.curva) {
-  case MODO_CURVA_HERMITE:
-    for (int i = 0; g_clicks.quantidade_atual - i >= 4; i++) {
+   case MODO_CURVA_HERMITE:
+    vetor_boxes.quantidade = 0;
+    for (int i = 0; i <= g_clicks.quantidade_atual - 4; i++) {
       P0 = g_clicks.data[i];
       P1 = g_clicks.data[i + 1];
       P2 = g_clicks.data[i + 2];
       P3 = g_clicks.data[i + 3];
-      gerar_curva_hermite(P0, P1, P2, P3, &g_curva_atual);
+      AABB box_h;
+      box_h.segmento_indice = i;
+      gerar_curva_hermite(P0, P1, P2, P3, &g_curva_atual, &box_h);
+      aabb_vec_push(&vetor_boxes, box_h);
       estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
       desenhar_curva_atual();
     }
     if (poligono) {
-      int j = 0;
       for (int i = 0; i < 3; i++) {
-        P0 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 3 + i)) % (int)(g_clicks.quantidade_atual))];
-        P1 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 2 + i)) % (int)(g_clicks.quantidade_atual))];
-        P2 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 1 + i)) % (int)(g_clicks.quantidade_atual))];
-        P3 = g_clicks.data[i];
-        gerar_curva_hermite(P0, P1, P2, P3, &g_curva_atual);
+        P0 = g_clicks.data[(g_clicks.quantidade_atual - 3 + i) % g_clicks.quantidade_atual];
+        P1 = g_clicks.data[(g_clicks.quantidade_atual - 2 + i) % g_clicks.quantidade_atual];
+        P2 = g_clicks.data[(g_clicks.quantidade_atual - 1 + i) % g_clicks.quantidade_atual];
+        P3 = g_clicks.data[(g_clicks.quantidade_atual     + i) % g_clicks.quantidade_atual];
+        AABB box_h;
+        box_h.segmento_indice = vetor_boxes.quantidade;
+        gerar_curva_hermite(P0, P1, P2, P3, &g_curva_atual, &box_h);
+        aabb_vec_push(&vetor_boxes, box_h);
         estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
         desenhar_curva_atual();
       }
     }
-
-    gerar_curva_hermite(P0, P1, P2, P3, &g_curva_atual);
-    desenhar_curva_atual();
     break;
-
-  case MODO_CURVA_BEZIER:
-    for (int i = 0; i <= g_clicks.quantidade_atual - 4; i += 3) {
-      P0 = g_clicks.data[i];
-      P1 = g_clicks.data[i + 1];
-      P2 = g_clicks.data[i + 2];
-      P3 = g_clicks.data[i + 3];
-      gerar_curva_bezier(P0, P1, P2, P3, &g_curva_atual);
-      estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
-      desenhar_curva_atual();
-    }
-    if (poligono && g_clicks.quantidade_atual % 3 == 0) { // % 3 garante que acurva fechada será unida no mesmo ponot, P0
-      P0 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 3 )) % (int)(g_clicks.quantidade_atual))];
-      P1 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 2 )) % (int)(g_clicks.quantidade_atual))];
-      P2 = g_clicks.data[(((int)(g_clicks.quantidade_atual - 1 )) % (int)(g_clicks.quantidade_atual))];
-      P3 = g_clicks.data[0];
-      gerar_curva_bezier(P0, P1, P2, P3, &g_curva_atual);
-      estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
-      desenhar_curva_atual();
-    }
+    case MODO_CURVA_BEZIER:
+      vetor_boxes.quantidade = 0;
+      for (int i = 0; i <= g_clicks.quantidade_atual - 4; i += 3) {
+        P0 = g_clicks.data[i];
+        P1 = g_clicks.data[i + 1];
+        P2 = g_clicks.data[i + 2];
+        P3 = g_clicks.data[i + 3];
+        AABB box_b;
+        box_b.segmento_indice = i;
+        gerar_curva_bezier(P0, P1, P2, P3, &g_curva_atual, &box_b);
+        aabb_vec_push(&vetor_boxes, box_b);
+        estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+        desenhar_curva_atual();
+      }
+      if (poligono && g_clicks.quantidade_atual % 3 == 0) {
+        P0 = g_clicks.data[(g_clicks.quantidade_atual - 3) % g_clicks.quantidade_atual];
+        P1 = g_clicks.data[(g_clicks.quantidade_atual - 2) % g_clicks.quantidade_atual];
+        P2 = g_clicks.data[(g_clicks.quantidade_atual - 1) % g_clicks.quantidade_atual];
+        P3 = g_clicks.data[0];
+        AABB box_b;
+        box_b.segmento_indice = vetor_boxes.quantidade;
+        gerar_curva_bezier(P0, P1, P2, P3, &g_curva_atual, &box_b);
+        aabb_vec_push(&vetor_boxes, box_b);
+        estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+        desenhar_curva_atual();
+      }
     break;
-  case MODO_CURVA_BSPLINE:
+    case MODO_CURVA_BSPLINE:
+
     glColor3f(1.0f, 0.5f, 0.0f); // Laranja
     AABB box;
     vetor_boxes.quantidade = 0;
@@ -151,23 +161,40 @@ void gerar_curva_selecionada() {
       }
     }
     //desenhar_arvore_aabb(arvore_boxes);
-    desenhar_aabbs(&vetor_boxes); //apenas para debug
     //Não chamo a função para transformar em árvore aqui, apenas quando os pontos de controle mudarem e tiver a soltura do mouse
     break;
-
-  case MODO_CURVA_CATMULLROM:
-     // Catmull-Rom: interpola entre pontos P1 e P2, usando P0 e P3 para tangentes
-    for (int i = 0; i <= g_clicks.quantidade_atual - 4; i++) {
-      P0 = g_clicks.data[i];
-      P1 = g_clicks.data[i + 1];
-      P2 = g_clicks.data[i + 2];
-      P3 = g_clicks.data[i + 3];
-      gerar_curva_catmullrom(P0, P1, P2, P3, &g_curva_atual);
-      estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
-      desenhar_curva_atual();
+    case MODO_CURVA_CATMULLROM:
+      vetor_boxes.quantidade = 0;
+      for (int i = 0; i <= g_clicks.quantidade_atual - 4; i++) {
+        P0 = g_clicks.data[i];
+        P1 = g_clicks.data[i + 1];
+        P2 = g_clicks.data[i + 2];
+        P3 = g_clicks.data[i + 3];
+        AABB box_c;
+        box_c.segmento_indice = i;
+        gerar_curva_catmullrom(P0, P1, P2, P3, &g_curva_atual, &box_c);
+        aabb_vec_push(&vetor_boxes, box_c);
+        estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+        desenhar_curva_atual();
+      }
+      if (poligono) {
+        for (int i = 0; i < 3; i++) {
+          P0 = g_clicks.data[(g_clicks.quantidade_atual - 3 + i) % g_clicks.quantidade_atual];
+          P1 = g_clicks.data[(g_clicks.quantidade_atual - 2 + i) % g_clicks.quantidade_atual];
+          P2 = g_clicks.data[(g_clicks.quantidade_atual - 1 + i) % g_clicks.quantidade_atual];
+          P3 = g_clicks.data[(g_clicks.quantidade_atual     + i) % g_clicks.quantidade_atual];
+          AABB box_c;
+          box_c.segmento_indice = vetor_boxes.quantidade;
+          gerar_curva_catmullrom(P0, P1, P2, P3, &g_curva_atual, &box_c);
+          aabb_vec_push(&vetor_boxes, box_c);
+          estado_atual.qtd_nuvem_pontos_number += g_curva_atual.quantidade_atual;
+          desenhar_curva_atual();
+        }
+      }
+      break;
     }
-    break;
-  }
+
+    desenhar_aabbs(&vetor_boxes); //apenas para debug
   sprintf(estado_atual.qtd_nuvem_pontos, "%d", estado_atual.qtd_nuvem_pontos_number);
 }
 void desenhar_aabbs(AABB_vec* v) {
@@ -378,7 +405,7 @@ void processar_clique_desenho(int x, int y) {
     break;
   case MODO_SELEICIONAR_CURVA:
     switch (estado_atual.curva) {
-      case MODO_CURVA_BSPLINE:
+      case MODO_CURVA_BSPLINE: {
         ResultadoPicking resultado = picking_bspline(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
         if(resultado.segmento_indice != -1){
           selecao_curva.seg_curva = resultado.segmento_indice;
@@ -386,15 +413,34 @@ void processar_clique_desenho(int x, int y) {
           selecao_curva.curva_selecionada = MODO_CURVA_BSPLINE;
         }
         break;
-      case MODO_CURVA_BEZIER:
-        //implementar aqui
+      }
+      case MODO_CURVA_BEZIER: {
+        ResultadoPicking resultado = picking_bezier(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
+        if (resultado.segmento_indice != -1) {
+          selecao_curva.seg_curva = resultado.segmento_indice;
+          selecao_curva.t = resultado.t;
+          selecao_curva.curva_selecionada = MODO_CURVA_BEZIER;
+        }
         break;
-      case MODO_CURVA_HERMITE:
-        //implementar aqui
+      }
+      case MODO_CURVA_HERMITE: {
+        ResultadoPicking resultado = picking_hermite(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
+        if (resultado.segmento_indice != -1) {
+          selecao_curva.seg_curva = resultado.segmento_indice;
+          selecao_curva.t = resultado.t;
+          selecao_curva.curva_selecionada = MODO_CURVA_HERMITE;
+        }
         break;
-      case MODO_CURVA_CATMULLROM:
-        //implementar aqui
+      }
+      case MODO_CURVA_CATMULLROM: {
+        ResultadoPicking resultado = picking_catmullrom(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
+        if (resultado.segmento_indice != -1) {
+          selecao_curva.seg_curva = resultado.segmento_indice;
+          selecao_curva.t = resultado.t;
+          selecao_curva.curva_selecionada = MODO_CURVA_CATMULLROM;
+        }
         break;
+      }
       default:
         printf("\n\tNão era para ser possível chegar aqui.");
         exit(-1);
@@ -671,14 +717,23 @@ void onMotion(int x, int y) {
         glutPostRedisplay();
         break;
       case MODO_CURVA_HERMITE:
-        //implementar  aqui
+        arrastar_ponto_hermite(&g_clicks, selecao_curva.seg_curva, selecao_curva.t, mouse);
+        calcular_centro_medio(&centro, &g_clicks);
+        precisa_refazer_curva = 1;
+        glutPostRedisplay();
         break;
       case MODO_CURVA_BEZIER:
-        //implementar aqui
+        arrastar_ponto_bezier(&g_clicks, selecao_curva.seg_curva, selecao_curva.t, mouse);
+        calcular_centro_medio(&centro, &g_clicks);
+        precisa_refazer_curva = 1;
+        glutPostRedisplay();
         break;
       case MODO_CURVA_CATMULLROM:
-        //implementar aqui
-        break;
+        arrastar_ponto_catmullrom(&g_clicks, selecao_curva.seg_curva, selecao_curva.t, mouse);
+        calcular_centro_medio(&centro, &g_clicks);
+        precisa_refazer_curva = 1;
+        glutPostRedisplay();
+        break; 
       default:
         printf("\n\tNão era para chegar aqui");
         exit(-1);

@@ -2,7 +2,7 @@
 #define BEZIER_H
 
 #include "../pontos.h"
-
+#include "../aabb.h"
 /**
  * Curva de Bézier
  * - Usa pontos de controle que "atraem" a curva
@@ -10,8 +10,9 @@
  * - Pontos intermediários controlam a forma
  * - Ideal para design gráfico
  */
-
-void gerar_curva_bezier(ponto P0, ponto P1, ponto P2, ponto P3, Pontos* curva_resultado);
+void gerar_curva_bezier(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva, AABB *box);
 ponto calcular_ponto_bezier(ponto P0, ponto P1, ponto P2, ponto P3, float t);
-void subdivide_Bezier(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado, float t0, float t1, float tolerance);
+void arrastar_ponto_bezier(Pontos *clicks, int seg, float ti, ponto mouse);
+ResultadoPicking picking_bezier(AABBTREE *arvore, Pontos *clicks, ponto mouse, float tolerancia, float melhor_dist);
+static void subdivide_bezier(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva, ponto A, ponto B, float t0, float t1, float tol, AABB *box);
 #endif
