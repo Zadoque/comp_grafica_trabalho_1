@@ -32,10 +32,10 @@ void aabb_vec_init(AABB_vec* v, int capacidade_inicial) {
     }
 }
 
-
-static AABBTREE* construir_recursivo(AABB* dados, int inicio, int fim) {
-    AABBTREE* no = (AABBTREE*)malloc(sizeof(AABBTREE));
-    if (no == NULL) return NULL;
+// Atualizado para receber o ponteiro da arena e o controle de índice
+static AABBTREE* construir_recursivo(AABB* dados, int inicio, int fim, AABBTREE* arena, int* proximo) {
+    // Em vez de malloc, pegamos o próximo nó disponível na arena
+    AABBTREE* no = &arena[(*proximo)++];
 
     if (inicio == fim) {
         // Nó folha
@@ -47,8 +47,8 @@ static AABBTREE* construir_recursivo(AABB* dados, int inicio, int fim) {
     }
 
     int meio = (inicio + fim) / 2;
-    no->esquerda = construir_recursivo(dados, inicio, meio);
-    no->direita  = construir_recursivo(dados, meio + 1, fim);
+    no->esquerda = construir_recursivo(dados, inicio, meio, arena, proximo);
+    no->direita  = construir_recursivo(dados, meio + 1, fim, arena, proximo);
 
     // União das caixas dos filhos
     AABB* e = &no->esquerda->box;
@@ -70,14 +70,29 @@ static AABBTREE* construir_recursivo(AABB* dados, int inicio, int fim) {
 
 AABBTREE* aabb_vec_para_arvore(AABB_vec* v) {
     if (v == NULL || v->quantidade == 0) return NULL;
-    return construir_recursivo(v->dados, 0, v->quantidade - 1);
+    
+    // Aloca todos os nós necessários de uma única vez.
+    // Uma árvore binária com N folhas tem no máximo 2N - 1 nós no total.
+    int max_nos = 2 * v->quantidade - 1;
+    AABBTREE* arena = (AABBTREE*)malloc(max_nos * sizeof(AABBTREE));
+    
+    if (arena == NULL) return NULL;
+
+    int proximo = 0;
+    
+    // O retorno desta função (arena[0]) é garantidamente o ponteiro inicial
+    // do bloco alocado pelo malloc, pois é o primeiro nó a ser processado.
+    return construir_recursivo(v->dados, 0, v->quantidade - 1, arena, &proximo);
 }
 
 void aabb_tree_free(AABBTREE* no) {
-    if (no == NULL) return;
-    aabb_tree_free(no->esquerda);
-    aabb_tree_free(no->direita);
-    free(no);
+    // Como alocamos tudo de uma vez em `aabb_vec_para_arvore`, 
+    // a árvore inteira agora é um único bloco de memória contíguo.
+    // O ponteiro 'no' da raiz é o endereço base desse bloco (&arena[0]).
+    // Logo, um único free() resolve tudo e não precisa mais da recursão.
+    if (no != NULL) {
+        free(no);
+    }
 }
 
 void reset_box(AABB *box){
