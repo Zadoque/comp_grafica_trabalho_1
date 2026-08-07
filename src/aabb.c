@@ -11,15 +11,16 @@ int ponto_dentro_aabb(AABB box, float px, float py) {
 }
 
 
+
 void aabb_vec_push(AABB_vec* v, AABB box) {
     if (v->quantidade >= v->capacidade) {
         v->capacidade = (int)(v->capacidade * 1.5f) + 1;
         v->dados = realloc(v->dados, v->capacidade * sizeof(AABB));
     }
     v->dados[v->quantidade] = box;
-    v->dados[v->quantidade].segmento_indice = v->quantidade;
     v->quantidade++;
 }
+
 
 void aabb_vec_init(AABB_vec* v, int capacidade_inicial) {
     v->dados      = (AABB*)malloc(capacidade_inicial * sizeof(AABB));
@@ -31,10 +32,12 @@ void aabb_vec_init(AABB_vec* v, int capacidade_inicial) {
     }
 }
 
+
 // Atualizado para receber o ponteiro da arena e o controle de índice
 static AABBTREE* construir_recursivo(AABB* dados, int inicio, int fim, AABBTREE* arena, int* proximo) {
     // Em vez de malloc, pegamos o próximo nó disponível na arena
     AABBTREE* no = &arena[(*proximo)++];
+
 
     if (inicio == fim) {
         // Nó folha
@@ -45,13 +48,16 @@ static AABBTREE* construir_recursivo(AABB* dados, int inicio, int fim, AABBTREE*
         return no;
     }
 
+
     int meio = (inicio + fim) / 2;
     no->esquerda = construir_recursivo(dados, inicio, meio, arena, proximo);
     no->direita  = construir_recursivo(dados, meio + 1, fim, arena, proximo);
 
+
     // União das caixas dos filhos
     AABB* e = &no->esquerda->box;
     AABB* d = &no->direita->box;
+
 
     no->box.x_min = fminf(e->x_min, d->x_min);
     no->box.y_min = fminf(e->y_min, d->y_min);
@@ -59,13 +65,16 @@ static AABBTREE* construir_recursivo(AABB* dados, int inicio, int fim, AABBTREE*
     no->box.y_max = fmaxf(e->y_max, d->y_max);
     no->box.segmento_indice = -1;
 
+
     // Altura = 1 + maior filho
     int alt_e = no->esquerda  ? no->esquerda->altura  : -1;
     int alt_d = no->direita   ? no->direita->altura   : -1;
     no->altura = 1 + (alt_e > alt_d ? alt_e : alt_d);
 
+
     return no;
 }
+
 
 AABBTREE* aabb_vec_para_arvore(AABB_vec* v) {
     if (v == NULL || v->quantidade == 0) return NULL;
@@ -77,12 +86,14 @@ AABBTREE* aabb_vec_para_arvore(AABB_vec* v) {
     
     if (arena == NULL) return NULL;
 
+
     int proximo = 0;
     
     // O retorno desta função (arena[0]) é garantidamente o ponteiro inicial
     // do bloco alocado pelo malloc, pois é o primeiro nó a ser processado.
     return construir_recursivo(v->dados, 0, v->quantidade - 1, arena, &proximo);
 }
+
 
 void aabb_tree_free(AABBTREE* no) {
     // Como alocamos tudo de uma vez em `aabb_vec_para_arvore`, 
@@ -94,12 +105,14 @@ void aabb_tree_free(AABBTREE* no) {
     }
 }
 
+
 void reset_box(AABB *box){
   box->x_min =  FLT_MAX;
   box->y_min = FLT_MAX;
   box->x_max = FLT_MAX * (-1.0f);
   box->y_max = FLT_MAX * (-1.0f);
 }
+
 
 float calcula_area_box(AABB *box) {
   if (!box) return 0.0f;
