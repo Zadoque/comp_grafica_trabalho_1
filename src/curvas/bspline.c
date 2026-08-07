@@ -69,23 +69,8 @@ static void criar_box_picking(ponto P0, ponto P1, ponto P2, ponto P3,
     }
 }
 
-static float dist_mouse_aabb(ponto mouse, AABB box) {
-    float dx = fmaxf(0.0f, fmaxf(box.x_min - mouse.point[0], mouse.point[0] - box.x_max));
-    float dy = fmaxf(0.0f, fmaxf(box.y_min - mouse.point[1], mouse.point[1] - box.y_max));
-    return sqrtf(dx*dx + dy*dy);
-}
 
-static float dist_mouse_aabb_left(ponto mouse, AABB box){
-    float dx = fmaxf(0.0f, fmaxf(box.esq_x_min - mouse.point[0], mouse.point[0] - box.esq_x_max));
-    float dy = fmaxf(0.0f, fmaxf(box.esq_y_min - mouse.point[1], mouse.point[1] - box.esq_y_max));
-    return sqrtf(dx*dx + dy*dy);
-}
 
-static float dist_mouse_aabb_right(ponto mouse, AABB box){
-    float dx = fmaxf(0.0f, fmaxf(box.dir_x_min - mouse.point[0], mouse.point[0] - box.dir_x_max));
-    float dy = fmaxf(0.0f, fmaxf(box.dir_y_min - mouse.point[1], mouse.point[1] - box.dir_y_max));
-    return sqrtf(dx*dx + dy*dy);
-}
 void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3,
                          Pontos *curva_resultado, AABB *box) {
     curva_resultado->quantidade_atual = 0;
@@ -203,7 +188,6 @@ ResultadoPicking picking_bspline(AABBTREE* arvore, Pontos* clicks,
 
     // Nó folha — refina com subdivisão
     if (arvore->esquerda == NULL && arvore->direita == NULL) {
-        printf("\n\tchegou a um nó folha com segmento: %d", arvore->box.segmento_indice);
         int i = arvore->box.segmento_indice;
         int n = clicks->quantidade_atual;
         ponto P0 = clicks->data[ i      % n];

@@ -43,20 +43,44 @@ static void subdivide_catmullrom(ponto P0, ponto P1, ponto P2, ponto P3,
 void gerar_curva_catmullrom(ponto P0, ponto P1, ponto P2, ponto P3,
                               Pontos *curva, AABB *box) {
     curva->quantidade_atual = 0;
-    ponto A = calcular_ponto_catmullrom(P0,P1,P2,P3, 0.0f);
-    ponto B = calcular_ponto_catmullrom(P0,P1,P2,P3, 1.0f);
-    box->x_min = fminf(A.point[0], B.point[0]); box->y_min = fminf(A.point[1], B.point[1]);
-    box->x_max = fmaxf(A.point[0], B.point[0]); box->y_max = fmaxf(A.point[1], B.point[1]);
+    ponto A = calcular_ponto_catmullrom(P0, P1, P2, P3, 0.0f);
+    ponto M = calcular_ponto_catmullrom(P0, P1, P2, P3, 0.5f);
+    ponto B = calcular_ponto_catmullrom(P0, P1, P2, P3, 1.0f);
+
+    // Inicializa caixas temporárias com os limites dos extremos
+    AABB box_esq; reset_box(&box_esq);
+    box_esq.x_min = fminf(A.point[0], M.point[0]);
+    box_esq.y_min = fminf(A.point[1], M.point[1]);
+    box_esq.x_max = fmaxf(A.point[0], M.point[0]);
+    box_esq.y_max = fmaxf(A.point[1], M.point[1]);
+
+    AABB box_dir; reset_box(&box_dir);
+    box_dir.x_min = fminf(M.point[0], B.point[0]);
+    box_dir.y_min = fminf(M.point[1], B.point[1]);
+    box_dir.x_max = fmaxf(M.point[0], B.point[0]);
+    box_dir.y_max = fmaxf(M.point[1], B.point[1]);
+     // Subdivide as metades direcionando os resultados para as caixas temporárias
     pontos_push(curva, A);
-    subdivide_catmullrom(P0,P1,P2,P3, curva, A, B, 0.0f, 1.0f, 0.1f, box);
+    subdivide_catmullrom(P0, P1, P2, P3, curva, A, M, 0.0f, 0.5f, 0.1f, &box_esq);
+    pontos_push(curva, M);
+    subdivide_catmullrom(P0, P1, P2, P3, curva, M, B, 0.5f, 1.0f, 0.1f, &box_dir);
     pontos_push(curva, B);
+
+    // Salva as metades nos campos corretos da struct principal
+    box->esq_x_min = box_esq.x_min; box->esq_y_min = box_esq.y_min;
+    box->esq_x_max = box_esq.x_max; box->esq_y_max = box_esq.y_max;
+    
+    box->dir_x_min = box_dir.x_min; box->dir_y_min = box_dir.y_min;
+    box->dir_x_max = box_dir.x_max; box->dir_y_max = box_dir.y_max;
+
+    // A caixa global é a união das duas metades
+    box->x_min = fminf(box_esq.x_min, box_dir.x_min);
+    box->y_min = fminf(box_esq.y_min, box_dir.y_min);
+    box->x_max = fmaxf(box_esq.x_max, box_dir.x_max);
+    box->y_max = fmaxf(box_esq.y_max, box_dir.y_max);
 }
 
-static float dist_mouse_aabb_c(ponto mouse, AABB box) {
-    float dx = fmaxf(0.0f, fmaxf(box.x_min - mouse.point[0], mouse.point[0] - box.x_max));
-    float dy = fmaxf(0.0f, fmaxf(box.y_min - mouse.point[1], mouse.point[1] - box.y_max));
-    return sqrtf(dx*dx + dy*dy);
-}
+
 
 static void criar_box_picking_c(ponto P0, ponto P1, ponto P2, ponto P3,
                                   ponto A, ponto B, float t0, float t1,
@@ -88,7 +112,7 @@ static ResultadoPicking subdivide_picking_catmullrom(
     ponto B = calcular_ponto_catmullrom(P0,P1,P2,P3, t1);
     AABB be; reset_box(&be); criar_box_picking_c(P0,P1,P2,P3, A, M, t0, tmid, 0.1f, &be, 0);
     AABB bd; reset_box(&bd); criar_box_picking_c(P0,P1,P2,P3, M, B, tmid, t1, 0.1f, &bd, 1);
-    float de = dist_mouse_aabb_c(mouse, be), dd = dist_mouse_aabb_c(mouse, bd);
+    float de = dist_mouse_aabb(mouse, be), dd = dist_mouse_aabb(mouse, bd);
     ResultadoPicking melhor = sem;
     if (de <= dd) {
         if (de < melhor_dist) melhor = subdivide_picking_catmullrom(P0,P1,P2,P3, mouse, t0, tmid, melhor_dist, tolerancia_t);
@@ -130,21 +154,57 @@ void arrastar_ponto_catmullrom(Pontos *clicks, int seg, float ti, ponto mouse) {
 
 ResultadoPicking picking_catmullrom(AABBTREE *arvore, Pontos *clicks,
                                      ponto mouse, float tolerancia, float melhor_dist) {
-    ResultadoPicking sem = { -1, 0.0f, FLT_MAX };
-    if (!arvore) return sem;
-    float dc = dist_mouse_aabb_c(mouse, arvore->box);
-    if (dc > tolerancia && dc > melhor_dist) return sem;
+    ResultadoPicking sem_resultado = { -1, 0.0f, FLT_MAX };
+    if (!arvore) return sem_resultado;
+    float dc = dist_mouse_aabb(mouse, arvore->box);
+    if (dc > tolerancia || (melhor_dist != FLT_MAX && dc > melhor_dist)) return sem_resultado;
     if (arvore->esquerda == NULL && arvore->direita == NULL) {
         int i = arvore->box.segmento_indice, n = clicks->quantidade_atual;
         ponto P0 = clicks->data[i%n], P1 = clicks->data[(i+1)%n];
         ponto P2 = clicks->data[(i+2)%n], P3 = clicks->data[(i+3)%n];
-        ResultadoPicking r = subdivide_picking_catmullrom(P0,P1,P2,P3, mouse, 0.0f, 1.0f, FLT_MAX, 0.001f);
-        r.segmento_indice = (r.distancia <= tolerancia) ? i : -1;
-        return r;
+       
+        float dist_metade_esq = dist_mouse_aabb_left( mouse, arvore->box);
+        float dist_metade_dir = dist_mouse_aabb_right(mouse, arvore->box);
+        ResultadoPicking resultado = sem_resultado;
+
+        // Explora primeiro o lado mais próximo
+        if (dist_metade_esq <= dist_metade_dir) {
+            // Tenta a esquerda
+            if (dist_metade_esq <= tolerancia) {
+                resultado = subdivide_picking_catmullrom(P0, P1, P2, P3, mouse, 0.0f, 0.5f, melhor_dist, 0.001f);
+            }
+            
+            // Tenta a direita usando o resultado da esquerda como limite para otimizar
+            float limite = (resultado.segmento_indice != -1) ? resultado.distancia : melhor_dist;
+            if (dist_metade_dir < limite && dist_metade_dir <= tolerancia) {
+                ResultadoPicking r_dir = subdivide_picking_catmullrom(P0, P1, P2, P3, mouse, 0.5f, 1.0f, limite, 0.001f);
+                if (r_dir.distancia < resultado.distancia) {
+                    resultado = r_dir;
+                }
+            }
+        } else {
+            // Tenta a direita
+            if (dist_metade_dir <= tolerancia) {
+                resultado = subdivide_picking_catmullrom(P0, P1, P2, P3, mouse, 0.5f, 1.0f, melhor_dist, 0.001f);
+            }
+            
+            // Tenta a esquerda usando o resultado da direita como limite para otimizar
+            float limite = (resultado.segmento_indice != -1) ? resultado.distancia : melhor_dist;
+            if (dist_metade_esq < limite && dist_metade_esq <= tolerancia) {
+                ResultadoPicking r_esq = subdivide_picking_catmullrom(P0, P1, P2, P3, mouse, 0.0f, 0.5f, limite, 0.001f);
+                if (r_esq.distancia < resultado.distancia) {
+                    resultado = r_esq;
+                }
+            }
+        }
+          
+        // Associa o índice real se a distância final for válida
+        resultado.segmento_indice = (resultado.distancia <= tolerancia) ? i : -1;
+        return resultado;
     }
-    float de = arvore->esquerda ? dist_mouse_aabb_c(mouse, arvore->esquerda->box) : FLT_MAX;
-    float dd = arvore->direita  ? dist_mouse_aabb_c(mouse, arvore->direita->box)  : FLT_MAX;
-    ResultadoPicking melhor = sem;
+    float de = arvore->esquerda ? dist_mouse_aabb(mouse, arvore->esquerda->box) : FLT_MAX;
+    float dd = arvore->direita  ? dist_mouse_aabb(mouse, arvore->direita->box)  : FLT_MAX;
+    ResultadoPicking melhor = sem_resultado;
     if (de <= dd) {
         melhor = picking_catmullrom(arvore->esquerda, clicks, mouse, tolerancia, melhor_dist);
         float lim = (melhor.segmento_indice != -1) ? melhor.distancia : melhor_dist;

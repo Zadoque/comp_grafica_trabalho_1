@@ -3,6 +3,7 @@
 
 #include "../pontos.h"
 #include "../aabb.h"
+#include "ultis/ultis.h"
 /**
  * Curva de Bézier
  * - Usa pontos de controle que "atraem" a curva

@@ -37,6 +37,7 @@ SRC_FILES=(
   src/curvas/bezier.c
   src/curvas/bspline.c
   src/curvas/catmullrom.c
+  src/curvas/ultis/ultis.c
 )
 
 # Verificar se os arquivos existem

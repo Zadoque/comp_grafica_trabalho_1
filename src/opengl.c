@@ -193,8 +193,8 @@ void gerar_curva_selecionada() {
       }
       break;
     }
-
-    desenhar_aabbs(&vetor_boxes); //apenas para debug
+    //desenhar_arvore_aabb(arvore_boxes);
+    //desenhar_aabbs(&vetor_boxes); //apenas para debug
   sprintf(estado_atual.qtd_nuvem_pontos, "%d", estado_atual.qtd_nuvem_pontos_number);
 }
 void desenhar_aabbs(AABB_vec* v) {
@@ -407,6 +407,7 @@ void processar_clique_desenho(int x, int y) {
     switch (estado_atual.curva) {
       case MODO_CURVA_BSPLINE: {
         ResultadoPicking resultado = picking_bspline(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
+
         if(resultado.segmento_indice != -1){
           selecao_curva.seg_curva = resultado.segmento_indice;
           selecao_curva.t =  resultado.t;
@@ -416,6 +417,7 @@ void processar_clique_desenho(int x, int y) {
       }
       case MODO_CURVA_BEZIER: {
         ResultadoPicking resultado = picking_bezier(arvore_boxes, &g_clicks, mouse, 5.0f, FLT_MAX);
+
         if (resultado.segmento_indice != -1) {
           selecao_curva.seg_curva = resultado.segmento_indice;
           selecao_curva.t = resultado.t;

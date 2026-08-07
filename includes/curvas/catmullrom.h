@@ -3,7 +3,7 @@
 
 #include "../pontos.h"
 #include "../aabb.h"
-
+#include "ultis/ultis.h"
 /**
  * Curva Catmull-Rom
  * - SEMPRE passa pelos pontos de controle

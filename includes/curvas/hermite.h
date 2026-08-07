@@ -3,7 +3,7 @@
 
 #include "../pontos.h"
 #include "../aabb.h"
-
+#include "ultis/ultis.h"
 /**
  * Curva de Hermite
  * - Conecta 2 pontos usando vetores tangentes
