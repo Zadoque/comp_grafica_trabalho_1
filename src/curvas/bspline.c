@@ -32,12 +32,12 @@ ponto calcular_ponto_bspline(ponto P0, ponto P1, ponto P2, ponto P3, float t) {
                          coeficientes[2] * P2.point[1] + coeficientes[3] * P3.point[1];
     return resultado;
 }
-
 void subdivide(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado,
                ponto A, ponto B, float t0, float t1, float tolerance, AABB *box) {
     float tmid = (t0 + t1) / 2.0f;
     ponto M = calcular_ponto_bspline(P0, P1, P2, P3, tmid);
     float dist = calcula_dist_ponto_segmento(M, A, B);
+    
     if (dist < tolerance) {
         pontos_push(curva_resultado, M);
         box->x_min = fminf(box->x_min, M.point[0]);
@@ -49,7 +49,6 @@ void subdivide(ponto P0, ponto P1, ponto P2, ponto P3, Pontos *curva_resultado,
         subdivide(P0, P1, P2, P3, curva_resultado, M, B, tmid, t1, tolerance, box);
     }
 }
-
 // Unificação das duas funções left/right — lado: 0=esquerda, 1=direita
 static void criar_box_picking(ponto P0, ponto P1, ponto P2, ponto P3,
                                ponto A, ponto B, float t0, float t1,
@@ -76,20 +75,56 @@ static float dist_mouse_aabb(ponto mouse, AABB box) {
     return sqrtf(dx*dx + dy*dy);
 }
 
+static float dist_mouse_aabb_left(ponto mouse, AABB box){
+    float dx = fmaxf(0.0f, fmaxf(box.esq_x_min - mouse.point[0], mouse.point[0] - box.esq_x_max));
+    float dy = fmaxf(0.0f, fmaxf(box.esq_y_min - mouse.point[1], mouse.point[1] - box.esq_y_max));
+    return sqrtf(dx*dx + dy*dy);
+}
+
+static float dist_mouse_aabb_right(ponto mouse, AABB box){
+    float dx = fmaxf(0.0f, fmaxf(box.dir_x_min - mouse.point[0], mouse.point[0] - box.dir_x_max));
+    float dy = fmaxf(0.0f, fmaxf(box.dir_y_min - mouse.point[1], mouse.point[1] - box.dir_y_max));
+    return sqrtf(dx*dx + dy*dy);
+}
 void gerar_curva_bspline(ponto P0, ponto P1, ponto P2, ponto P3,
-                          Pontos *curva_resultado, AABB *box) {
+                         Pontos *curva_resultado, AABB *box) {
     curva_resultado->quantidade_atual = 0;
     ponto A = calcular_ponto_bspline(P0, P1, P2, P3, 0.0f);
+    ponto M = calcular_ponto_bspline(P0, P1, P2, P3, 0.5f);
     ponto B = calcular_ponto_bspline(P0, P1, P2, P3, 1.0f);
 
-    box->x_min = fminf(A.point[0], B.point[0]);
-    box->y_min = fminf(A.point[1], B.point[1]);
-    box->x_max = fmaxf(A.point[0], B.point[0]);
-    box->y_max = fmaxf(A.point[1], B.point[1]);
+    // Inicializa caixas temporárias com os limites dos extremos
+    AABB box_esq; reset_box(&box_esq);
+    box_esq.x_min = fminf(A.point[0], M.point[0]);
+    box_esq.y_min = fminf(A.point[1], M.point[1]);
+    box_esq.x_max = fmaxf(A.point[0], M.point[0]);
+    box_esq.y_max = fmaxf(A.point[1], M.point[1]);
 
+    AABB box_dir; reset_box(&box_dir);
+    box_dir.x_min = fminf(M.point[0], B.point[0]);
+    box_dir.y_min = fminf(M.point[1], B.point[1]);
+    box_dir.x_max = fmaxf(M.point[0], B.point[0]);
+    box_dir.y_max = fmaxf(M.point[1], B.point[1]);
+
+    // Subdivide as metades direcionando os resultados para as caixas temporárias
     pontos_push(curva_resultado, A);
-    subdivide(P0, P1, P2, P3, curva_resultado, A, B, 0.0f, 1.0f, 0.1f, box);
+    subdivide(P0, P1, P2, P3, curva_resultado, A, M, 0.0f, 0.5f, 0.1f, &box_esq);
+    pontos_push(curva_resultado, M);
+    subdivide(P0, P1, P2, P3, curva_resultado, M, B, 0.5f, 1.0f, 0.1f, &box_dir);
     pontos_push(curva_resultado, B);
+
+    // Salva as metades nos campos corretos da struct principal
+    box->esq_x_min = box_esq.x_min; box->esq_y_min = box_esq.y_min;
+    box->esq_x_max = box_esq.x_max; box->esq_y_max = box_esq.y_max;
+    
+    box->dir_x_min = box_dir.x_min; box->dir_y_min = box_dir.y_min;
+    box->dir_x_max = box_dir.x_max; box->dir_y_max = box_dir.y_max;
+
+    // A caixa global é a união das duas metades
+    box->x_min = fminf(box_esq.x_min, box_dir.x_min);
+    box->y_min = fminf(box_esq.y_min, box_dir.y_min);
+    box->x_max = fmaxf(box_esq.x_max, box_dir.x_max);
+    box->y_max = fmaxf(box_esq.y_max, box_dir.y_max);
 }
 
 static ResultadoPicking subdivide_picking_bspline(
@@ -175,10 +210,43 @@ ResultadoPicking picking_bspline(AABBTREE* arvore, Pontos* clicks,
         ponto P1 = clicks->data[(i + 1) % n];
         ponto P2 = clicks->data[(i + 2) % n];
         ponto P3 = clicks->data[(i + 3) % n];
+       
+        float dist_metade_esq = dist_mouse_aabb_left( mouse, arvore->box);
+        float dist_metade_dir = dist_mouse_aabb_right(mouse, arvore->box);
+        ResultadoPicking resultado = sem_resultado;
 
-        ResultadoPicking resultado = subdivide_picking_bspline(
-            P0, P1, P2, P3, mouse, 0.0f, 1.0f, FLT_MAX, 0.001f);
-
+        // Explora primeiro o lado mais próximo
+        if (dist_metade_esq <= dist_metade_dir) {
+            // Tenta a esquerda
+            if (dist_metade_esq <= tolerancia) {
+                resultado = subdivide_picking_bspline(P0, P1, P2, P3, mouse, 0.0f, 0.5f, melhor_dist, 0.001f);
+            }
+            
+            // Tenta a direita usando o resultado da esquerda como limite para otimizar
+            float limite = (resultado.segmento_indice != -1) ? resultado.distancia : melhor_dist;
+            if (dist_metade_dir < limite && dist_metade_dir <= tolerancia) {
+                ResultadoPicking r_dir = subdivide_picking_bspline(P0, P1, P2, P3, mouse, 0.5f, 1.0f, limite, 0.001f);
+                if (r_dir.distancia < resultado.distancia) {
+                    resultado = r_dir;
+                }
+            }
+        } else {
+            // Tenta a direita
+            if (dist_metade_dir <= tolerancia) {
+                resultado = subdivide_picking_bspline(P0, P1, P2, P3, mouse, 0.5f, 1.0f, melhor_dist, 0.001f);
+            }
+            
+            // Tenta a esquerda usando o resultado da direita como limite para otimizar
+            float limite = (resultado.segmento_indice != -1) ? resultado.distancia : melhor_dist;
+            if (dist_metade_esq < limite && dist_metade_esq <= tolerancia) {
+                ResultadoPicking r_esq = subdivide_picking_bspline(P0, P1, P2, P3, mouse, 0.0f, 0.5f, limite, 0.001f);
+                if (r_esq.distancia < resultado.distancia) {
+                    resultado = r_esq;
+                }
+            }
+        }
+          
+        // Associa o índice real se a distância final for válida
         resultado.segmento_indice = (resultado.distancia <= tolerancia) ? i : -1;
         return resultado;
     }

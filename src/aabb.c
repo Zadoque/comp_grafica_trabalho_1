@@ -25,7 +25,6 @@ void aabb_vec_init(AABB_vec* v, int capacidade_inicial) {
     v->dados      = (AABB*)malloc(capacidade_inicial * sizeof(AABB));
     v->quantidade = 0;
     v->capacidade = capacidade_inicial;
-
     if (v->dados == NULL) {
         v->capacidade = 0;
         exit(-1);

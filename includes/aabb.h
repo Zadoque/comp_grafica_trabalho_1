@@ -4,6 +4,13 @@
 typedef struct {
     float x_min, y_min;
     float x_max, y_max;
+} AABB_METADE;
+
+typedef struct aabb {
+    float x_min, y_min;
+    float x_max, y_max;
+    float esq_x_min, esq_y_min, esq_x_max, esq_y_max;
+    float dir_x_min, dir_y_min, dir_x_max, dir_y_max;
     int segmento_indice;
 } AABB;
 
