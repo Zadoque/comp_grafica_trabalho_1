@@ -124,9 +124,13 @@ static void render_commands(void) {
     glDisable(GL_SCISSOR_TEST);
 }
 
+static int menu_mouse_local_x(void) {
+    return mouse_x - (janela_largura - menu_largura);
+}
+
 static void begin_ui_frame(void) {
     mu_begin(&ui);
-    mu_input_mousemove(&ui, mouse_x, mouse_y);
+    mu_input_mousemove(&ui, menu_mouse_local_x(), mouse_y);
 }
 
 static void draw_sidebar(void) {
@@ -303,7 +307,7 @@ void inicializar_menu(void) {
 void menu_mouse_move(int x, int y) {
     mouse_x = x;
     mouse_y = y;
-    if (ui_initialized) mu_input_mousemove(&ui, x, y);
+    if (ui_initialized) mu_input_mousemove(&ui, x - (janela_largura - menu_largura), y);
 }
 
 void menu_mouse_button(int button, int state, int x, int y) {
@@ -313,8 +317,9 @@ void menu_mouse_button(int button, int state, int x, int y) {
     int btn = button == GLUT_LEFT_BUTTON ? MU_MOUSE_LEFT :
               button == GLUT_RIGHT_BUTTON ? MU_MOUSE_RIGHT : 0;
     if (!btn) return;
-    if (state == GLUT_DOWN) mu_input_mousedown(&ui, x, y, btn);
-    else mu_input_mouseup(&ui, x, y, btn);
+    int local_x = x - (janela_largura - menu_largura);
+    if (state == GLUT_DOWN) mu_input_mousedown(&ui, local_x, y, btn);
+    else mu_input_mouseup(&ui, local_x, y, btn);
 }
 
 void menu_mouse_scroll(int direction, int x, int y) {
@@ -327,10 +332,9 @@ void menu_render(void) {
     if (!ui_initialized) return;
 
     atualizar_dimensoes_menu();
-    glViewport(0, 0, janela_largura, janela_altura);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, janela_largura, janela_altura, 0, -1, 1);
+    glOrtho(0, menu_largura, janela_altura, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
