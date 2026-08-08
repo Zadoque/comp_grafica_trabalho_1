@@ -1,7 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include "pontos.h" // Menu precisa conhecer estruturas de pontos
+#include "pontos.h"
 
 // Estados da aplicação
 typedef enum {
@@ -22,6 +22,7 @@ typedef enum {
   MODO_CURVA_BSPLINE,
   MODO_CURVA_BEZIER
 } Curva;
+
 typedef enum { TIPO_BOTAO1, TIPO_BOTAO2, TIPO_BOTAO3, TIPO_OPERACAO } TipoBotao;
 
 typedef struct {
@@ -68,27 +69,23 @@ typedef struct {
   Botoes2 botoes2[2];
   Botoes3 botoes3[4];
 } Botoes;
-/*
- * Colocado em comentário para só ter o número de pontos por enquanto kkkk
-typedef struct {
-  int x, y, largura, altura;
-  char texto[50];
-  int destacado;
-} description;
-*/
 
+// Item do painel de status e seu tooltip.
 typedef struct {
   int x, y;
   float largura, altura;
-  char texto[20];
+  char texto[80];
+  char tooltip[160];
   int destacado;
-} information;
+} InfoItem;
 
 // Variáveis globais do menu
 extern EstadoAplicacao estado_atual;
 extern Botoes botoes;
 extern BotoesOperacoes botoes_operacoes[4];
 extern int menu_largura;
+extern InfoItem info[2];
+extern int info_hover;
 
 // Funções do menu
 void atualizar_dimensoes_menu();
@@ -103,4 +100,6 @@ void desenhar_texto(float x, float y, void *font, const char *texto, float escal
 void recalcula_dimensoes_info();
 void atualiza_info();
 void desenhar_info();
+void processar_mouse_move_info(int x, int y);
+
 #endif
