@@ -28,6 +28,7 @@ SRC_FILES=(
   src/main.c
   src/pontos.c
   src/opengl.c
+  src/performance.c
   src/menu.c
   src/matriz.c
   src/vetor.c
@@ -67,14 +68,20 @@ for srcfile in "${SRC_FILES[@]}"; do
     if [ -f "$srcfile" ]; then
         objfile="obj/$(basename ${srcfile%.c}.o)"
         echo -n "  $(basename $srcfile) -> $(basename $objfile)... "
-        
-        if gcc -c -Wall -Wextra -std=c99 -Iinclude "$srcfile" -o "$objfile" 2>/dev/null; then
+
+        # A instrumentação é aplicada às funções de curva e ao desenho da curva.
+        EXTRA_CFLAGS=""
+        case "$srcfile" in
+          src/opengl.c|src/curvas/*.c) EXTRA_CFLAGS="-finstrument-functions" ;;
+        esac
+
+        if gcc -c -Wall -Wextra -std=c99 $EXTRA_CFLAGS -Iinclude "$srcfile" -o "$objfile" 2>/dev/null; then
             echo -e "${GREEN}OK${NC}"
             ((COMPILED_COUNT++))
         else
             echo -e "${RED}ERRO${NC}"
             echo -e "${RED}Detalhes do erro para $(basename $srcfile):${NC}"
-            gcc -c -Wall -Wextra -std=c99 -Iinclude "$srcfile" -o "$objfile"
+            gcc -c -Wall -Wextra -std=c99 $EXTRA_CFLAGS -Iinclude "$srcfile" -o "$objfile"
             COMPILE_ERROR=1
         fi
     fi
@@ -107,7 +114,6 @@ done
 
 echo -e "${BLUE}Total de objetos compilados: ${FOUND_OBJECTS}/${#EXPECTED_FILES[@]}${NC}"
 
-# Linkar e gerar executável
 # Linkar e gerar executável
 echo -e "${BLUE}Linkando executável...${NC}"
 if gcc obj/*.o -lGL -lGLU -lglut -lm -o bin/$PROJECT_NAME 2>/dev/null; then
