@@ -35,7 +35,6 @@ typedef struct {
   int qtd_nuvem_pontos_number;
 } EstadoAplicacao;
 
-// Estrutura dos botões
 typedef struct {
   int x, y, largura, altura;
   char texto[20];
@@ -101,5 +100,4 @@ void recalcula_dimensoes_info();
 void atualiza_info();
 void desenhar_info();
 void processar_mouse_move_info(int x, int y);
-
 #endif
