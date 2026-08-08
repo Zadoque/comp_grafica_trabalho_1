@@ -20,6 +20,8 @@ typedef struct {
     size_t points_generated;
     size_t buffer_used;
     size_t buffer_capacity;
+    size_t control_buffer_used;
+    size_t control_buffer_capacity;
 } PerformanceMetric;
 
 void performance_init(void);
