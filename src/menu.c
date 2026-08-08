@@ -31,6 +31,8 @@ static int janela_altura = 800;
 static int mouse_x = 0;
 static int mouse_y = 0;
 static int mostrar_metricas = 0;
+static const char *tooltip_text = NULL;
+static mu_Rect tooltip_anchor;
 
 static void mu_labelf(mu_Context *ctx, const char *fmt, ...) {
     char buffer[512];
@@ -197,6 +199,20 @@ static const char *curve_label(const char *curve) {
     return curve && curve[0] ? curve : "-";
 }
 
+static void draw_tooltip(const char *text, mu_Rect anchor) {
+    int width = text_width(ui.style->font, text, (int)strlen(text)) + 12;
+    int height = 28;
+    int x = menu_largura - width - 5;
+    int y = anchor.y - height - 4;
+    if (y < 4) y = anchor.y + anchor.h + 4;
+    if (x < 4) x = 4;
+    mu_Rect box = mu_rect(x, y, width, height);
+    mu_draw_rect(&ui, box, mu_color(30, 35, 42, 245));
+    mu_draw_box(&ui, box, mu_color(110, 120, 135, 255));
+    mu_draw_text(&ui, ui.style->font, text, (int)strlen(text),
+                 mu_vec2(x + 6, y + 6), mu_color(240, 240, 240, 255));
+}
+
 static void draw_status(void) {
     char controle[64], nuvem[64];
     snprintf(controle, sizeof(controle), "Pontos de controle: %d", g_clicks.quantidade_atual);
@@ -204,10 +220,26 @@ static void draw_status(void) {
 
     if (!mu_begin_window_ex(&ui, "status", mu_rect(5, janela_altura - 86, menu_largura - 10, 80),
                             MU_OPT_NOCLOSE | MU_OPT_NORESIZE | MU_OPT_NOTITLE)) return;
+
     mu_layout_row(&ui, 1, (int[]){-1}, 22);
-    mu_label(&ui, controle);
-    mu_label(&ui, nuvem);
+    mu_Rect controle_rect = mu_layout_next(&ui);
+    mu_draw_control_text(&ui, controle, controle_rect, MU_COLOR_TEXT, 0);
+
+    mu_layout_row(&ui, 1, (int[]){-1}, 22);
+    mu_Rect nuvem_rect = mu_layout_next(&ui);
+    mu_draw_control_text(&ui, nuvem, nuvem_rect, MU_COLOR_TEXT, 0);
+
+    tooltip_text = NULL;
+    if (mu_mouse_over(&ui, controle_rect)) {
+        tooltip_text = "Quantidade de pontos usados para definir a forma da curva.";
+        tooltip_anchor = controle_rect;
+    } else if (mu_mouse_over(&ui, nuvem_rect)) {
+        tooltip_text = "Quantidade de pontos amostrados como referencia geometrica.";
+        tooltip_anchor = nuvem_rect;
+    }
+
     mu_end_window(&ui);
+    if (tooltip_text) draw_tooltip(tooltip_text, tooltip_anchor);
 }
 
 static void draw_metrics(void) {
