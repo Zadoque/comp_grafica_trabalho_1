@@ -1,0 +1,1 @@
+timestamp,machine_id,processor,memory,gpu,architecture,os,curve,generation_ms,drawing_ms,points_generated,buffer_used,buffer_capacity,control_buffer_used,control_buffer_capacity
