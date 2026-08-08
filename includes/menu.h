@@ -39,7 +39,7 @@ void menu_mouse_move(int x, int y);
 void menu_mouse_button(int button, int state, int x, int y);
 void menu_mouse_scroll(int direction, int x, int y);
 void menu_render(void);
-void menu_render_metricas_fullscreen(void);
+int menu_bloqueia_desenho(void);
 void menu_shutdown(void);
 
 #endif
