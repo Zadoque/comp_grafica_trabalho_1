@@ -237,7 +237,8 @@ static void draw_metrics(void) {
     mu_labelf(&ui, "Tempo de geracao: %.6f ms", current->generation_ms);
     mu_labelf(&ui, "Tempo de desenho: %.6f ms", current->drawing_ms);
     mu_labelf(&ui, "Pontos gerados: %zu", current->points_generated);
-    mu_labelf(&ui, "Buffer: %zu / %zu", current->buffer_used, current->buffer_capacity);
+    mu_labelf(&ui, "Buffer da curva: %zu / %zu", current->buffer_used, current->buffer_capacity);
+    mu_labelf(&ui, "Buffer de controle: %zu / %zu", current->control_buffer_used, current->control_buffer_capacity);
 
     mu_layout_row(&ui, 1, (int[]){-1}, 24);
     mu_label(&ui, "Historico por tipo de curva");
