@@ -231,10 +231,10 @@ static void draw_status(void) {
 
     tooltip_text = NULL;
     if (mu_mouse_over(&ui, controle_rect)) {
-        tooltip_text = "Quantidade de pontos usados para definir a forma da curva.";
+        tooltip_text = "Pontos que definem a curva.";
         tooltip_anchor = controle_rect;
     } else if (mu_mouse_over(&ui, nuvem_rect)) {
-        tooltip_text = "Quantidade de pontos amostrados como referencia geometrica.";
+        tooltip_text = "Pontos amostrados da curva.";
         tooltip_anchor = nuvem_rect;
     }
 
