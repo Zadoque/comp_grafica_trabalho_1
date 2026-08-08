@@ -209,9 +209,7 @@ static void draw_status(void) {
 static void draw_metrics(void) {
     if (!mostrar_metricas) return;
 
-    mu_Rect rect = mu_rect(menu_largura + 20, 30,
-                           janela_largura - menu_largura - 40,
-                           janela_altura - 60);
+    mu_Rect rect = mu_rect(5, 5, menu_largura - 10, janela_altura - 10);
     if (!mu_begin_window_ex(&ui, "metricas", rect,
                             MU_OPT_HOLDFOCUS | MU_OPT_NOCLOSE)) return;
 
@@ -225,11 +223,11 @@ static void draw_metrics(void) {
         return;
     }
     mu_labelf(&ui, "Maquina: %s", current->machine_id);
-    mu_labelf(&ui, "Processador: %s", current->processor);
-    mu_labelf(&ui, "Memoria: %s", current->memory);
+    mu_labelf(&ui, "CPU: %s", current->processor);
+    mu_labelf(&ui, "RAM: %s", current->memory);
     mu_labelf(&ui, "GPU: %s", current->gpu);
-    mu_labelf(&ui, "Arquitetura: %s", current->architecture);
-    mu_labelf(&ui, "Sistema: %s", current->os);
+    mu_labelf(&ui, "Arq: %s", current->architecture);
+    mu_labelf(&ui, "OS: %s", current->os);
 
     mu_layout_row(&ui, 1, (int[]){-1}, 24);
     mu_label(&ui, "Ultima medicao");
