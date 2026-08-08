@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "../includes/performance.h"
+#include "../includes/opengl.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,9 @@ static struct timespec drawing_start;
 static int generation_running = 0;
 static int drawing_running = 0;
 static int pending_record = 0;
+static size_t generation_points = 0;
+
+Pontos g_nuvem_pontos;
 
 static double elapsed_ms(struct timespec a, struct timespec b) {
     return (double)(b.tv_sec - a.tv_sec) * 1000.0 +
@@ -121,7 +125,7 @@ static void ensure_metrics_file(void) {
     }
     f = fopen(PERFORMANCE_FILE, "w");
     if (!f) return;
-    fprintf(f, "timestamp,machine_id,processor,memory,gpu,architecture,os,curve,generation_ms,drawing_ms,points_generated,buffer_used,buffer_capacity\n");
+    fprintf(f, "timestamp,machine_id,processor,memory,gpu,architecture,os,curve,generation_ms,drawing_ms,points_generated,buffer_used,buffer_capacity,control_buffer_used,control_buffer_capacity\n");
     fclose(f);
 }
 
@@ -135,11 +139,12 @@ static void load_history(void) {
         PerformanceMetric m;
         memset(&m, 0, sizeof(m));
         int parsed = sscanf(line,
-            "%31[^,],%79[^,],%159[^,],%63[^,],%159[^,],%31[^,],%79[^,],%31[^,],%lf,%lf,%zu,%zu,%zu",
+            "%31[^,],%79[^,],%159[^,],%63[^,],%159[^,],%31[^,],%79[^,],%31[^,],%lf,%lf,%zu,%zu,%zu,%zu,%zu",
             m.timestamp, m.machine_id, m.processor, m.memory, m.gpu,
             m.architecture, m.os, m.curve, &m.generation_ms, &m.drawing_ms,
-            &m.points_generated, &m.buffer_used, &m.buffer_capacity);
-        if (parsed == 13) {
+            &m.points_generated, &m.buffer_used, &m.buffer_capacity,
+            &m.control_buffer_used, &m.control_buffer_capacity);
+        if (parsed == 15) {
             if (history_count < PERFORMANCE_HISTORY_MAX) {
                 history_cache[history_count++] = m;
             } else {
@@ -154,6 +159,7 @@ static void load_history(void) {
 
 void performance_init(void) {
     memset(&current_metric, 0, sizeof(current_metric));
+    pontos_init(&g_nuvem_pontos, 500);
     read_cpu();
     read_memory();
     read_gpu();
@@ -166,6 +172,7 @@ void performance_shutdown(void) {
 }
 
 void performance_begin_generation(void) {
+    generation_points = 0;
     clock_gettime(CLOCK_MONOTONIC, &generation_start);
     generation_running = 1;
 }
@@ -176,9 +183,13 @@ void performance_end_generation(Curva curva, size_t points_generated,
     if (!generation_running) return;
     clock_gettime(CLOCK_MONOTONIC, &end);
     current_metric.generation_ms = elapsed_ms(generation_start, end);
-    current_metric.points_generated = points_generated;
-    current_metric.buffer_used = buffer_used;
-    current_metric.buffer_capacity = buffer_capacity;
+    current_metric.points_generated = generation_points > 0 ? generation_points : points_generated;
+    (void)buffer_used;
+    (void)buffer_capacity;
+    current_metric.buffer_used = g_curva_atual.quantidade_atual;
+    current_metric.buffer_capacity = g_curva_atual.quantidade_max;
+    current_metric.control_buffer_used = g_clicks.quantidade_atual;
+    current_metric.control_buffer_capacity = g_clicks.quantidade_max;
     copy_text(current_metric.curve, sizeof(current_metric.curve), curve_name(curva));
     generation_running = 0;
     pending_record = 1;
@@ -216,15 +227,33 @@ void performance_end_drawing(void) {
     sanitize_csv_field(current_metric.architecture);
     sanitize_csv_field(current_metric.os);
     sanitize_csv_field(current_metric.curve);
-    fprintf(f, "%s,%s,%s,%s,%s,%s,%s,%s,%.6f,%.6f,%zu,%zu,%zu\n",
+    fprintf(f, "%s,%s,%s,%s,%s,%s,%s,%s,%.6f,%.6f,%zu,%zu,%zu,%zu,%zu\n",
             current_metric.timestamp, current_metric.machine_id,
             current_metric.processor, current_metric.memory, current_metric.gpu,
             current_metric.architecture, current_metric.os, current_metric.curve,
             current_metric.generation_ms, current_metric.drawing_ms,
             current_metric.points_generated, current_metric.buffer_used,
-            current_metric.buffer_capacity);
+            current_metric.buffer_capacity, current_metric.control_buffer_used,
+            current_metric.control_buffer_capacity);
     fclose(f);
     load_history();
+}
+
+void __attribute__((no_instrument_function))
+__cyg_profile_func_enter(void *func, void *caller) {
+    (void)func;
+    (void)caller;
+}
+
+void __attribute__((no_instrument_function))
+__cyg_profile_func_exit(void *func, void *caller) {
+    (void)caller;
+    if (func == (void *)&gerar_curva_hermite ||
+        func == (void *)&gerar_curva_bezier ||
+        func == (void *)&gerar_curva_bspline ||
+        func == (void *)&gerar_curva_catmullrom) {
+        generation_points += g_curva_atual.quantidade_atual;
+    }
 }
 
 const PerformanceMetric *performance_current(void) {
