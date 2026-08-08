@@ -6,19 +6,28 @@
 #include "menu.h"
 #include "aabb.h"
 
-// Incluir todas as curvas
 #include "curvas/hermite.h"
 #include "curvas/bezier.h"
 #include "curvas/bspline.h"
 #include "curvas/catmullrom.h"
-#include "transformacoes.h"  
+#include "transformacoes.h"
 
+// Métricas da etapa de geração/desenho.
+typedef struct {
+  double tempo_geracao_ms;
+  double tempo_desenho_ms;
+  size_t pontos_gerados;
+  size_t buffer_curva_uso;
+  size_t buffer_curva_capacidade;
+  size_t buffer_controle_uso;
+  size_t buffer_controle_capacidade;
+} MetricasPerformance;
 
-
+extern MetricasPerformance metricas_performance;
 
 // Variáveis globais
 extern Pontos g_clicks;
-extern Pontos g_curva_atual;  // Nova: para armazenar pontos da curva
+extern Pontos g_curva_atual;
 
 typedef struct {
       int indice;
@@ -26,21 +35,18 @@ typedef struct {
 } Selecao;
 
 typedef struct {
-  int seg_curva; //-1 se nenhum
+  int seg_curva;
   float t;
-  Curva curva_selecionada; 
+  Curva curva_selecionada;
 } Selecao_curva;
-// Funções existentes...
+
 void initGL();
 void AlteraTamanhoJanela(int w, int h);
 void display();
 void desenhar_conteudo_principal();
 void desenhar_aabbs(AABB_vec* v);
-// Novas funções para curvas
 void gerar_curva_selecionada();
 void desenhar_curva_atual();
-
-// Resto das suas funções...
 void onMouse(int button, int state, int x, int y);
 void onMouseMove(int x, int y);
 void onMotion(int x, int y);
